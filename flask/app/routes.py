@@ -1,5 +1,5 @@
 """
-Basic code flow of a Flask Project
+Basic code flow of a Flask Project. This should give you an idea about how to start debugging
 
 1) A user issues a request for a domain's root URL / to go to its home page
 2) routes.py maps the URL / to a Python function
