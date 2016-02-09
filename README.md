@@ -1,5 +1,9 @@
 # 461L Final Project
 
+## Project Workflow
+
+Always start work by checking out your own branch. When you have finished what you were working on, merge your own branch with dev. We will merge dev with master whenever we think that something is finished. The idea is that master should always be release ready code.
+
 ## Installation
 
 For this project we will be using pip 7.1.2. Make sure you have the correct version of pip because the newest version is a little buggy. Inorder to install everything that you need for this project, you will need to start a virtual environment by using the following command.
