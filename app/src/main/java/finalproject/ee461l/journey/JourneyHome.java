@@ -31,6 +31,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
 
     private GoogleMap mMap;
     private static boolean firstUpdate;
+    private static LatLng currentLocation;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -71,6 +72,12 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                 System.out.println("Just Closed the drawer");
             }
         });
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(JourneyHome.currentLocation));
     }
 
     private class NavClickListener implements ListView.OnItemClickListener {
@@ -161,5 +168,6 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLoc));
             JourneyHome.firstUpdate = false;
         }
+        JourneyHome.currentLocation = currentLoc;
     }
 }
