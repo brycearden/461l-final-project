@@ -17,6 +17,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -157,11 +158,25 @@ public class StartTrip extends AppCompatActivity {
             }
 
             if (directions != null) {
+                //TODO: Pass this information from this AsyncTask to the JourneyHome Map fragment...
                 //Valid directions
-                String valid = directions.getString("status");
-                if (!valid.equals("OK")) return;
-                //For this particular function, we do not need to worry about waypoints
-                //TODO: Get routes/legs/steps for this initial route
+                String valid = null;
+                try {
+                    valid = directions.getString("status");
+                    if (!valid.equals("OK")) return;
+                    //For this particular function, we do not need to worry about waypoints
+                    JSONArray routes = directions.getJSONArray("routes");
+
+                    //Need to get the legs[]
+                    JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
+                    JSONArray legs = firstRoute.getJSONArray("legs");
+
+                    //Need to get the steps[] now
+                    JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
+                    JSONArray steps = firstLeg.getJSONArray("steps");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
