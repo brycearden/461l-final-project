@@ -24,8 +24,14 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class JourneyHome extends FragmentActivity implements OnMapReadyCallback {
 
@@ -96,7 +102,102 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     public void startHandler(View view) {
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
-        startActivity(intent);
+        startActivityForResult(intent, 0);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            // From Start Handler
+            if (resultCode == RESULT_OK) {
+                //It worked
+                JSONObject directions = null;
+                try {
+                    directions = new JSONObject(data.getStringExtra("JSONDirections"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                String valid = null;
+                try {
+                    valid = directions.getString("status");
+                    if (!valid.equals("OK")) return;
+                    //For this particular function, we do not need to worry about waypoints
+                    JSONArray routes = directions.getJSONArray("routes");
+
+                    //Need to get the legs[]
+                    JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
+                    JSONArray legs = firstRoute.getJSONArray("legs");
+
+                    //Need to get the steps[] now
+                    JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
+                    JSONArray steps = firstLeg.getJSONArray("steps");
+
+                    //Need to convert polyline points into legitimate points
+                    //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
+                    List<LatLng> leg = new ArrayList<LatLng>();
+                    for (int i = 0; i < steps.length(); i++) {
+                        String points = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
+                        double latitude = 0;
+                        double longitude = 0; //Out here b/c path uses relative lat/lng changes
+                        int index = 0;
+                        int length = points.length();
+                        while (index < length) {
+                            //Need to decode each character
+                            //Start with latitude
+                            int[] lat = getCoord(points, index);
+                            latitude += lat[0] / 1e5; //step 2
+                            index = lat[1];
+
+                            //Repeat with longitude
+                            int[] lng = getCoord(points, index);
+                            longitude += lng[0] / 1e5;
+                            index = lng[1];
+
+                            LatLng current = new LatLng(latitude, longitude);
+                            leg.add(current);
+                        }
+                    }
+
+                    //Next we need to create a PolylineOptions object and give it all of the points in the step
+                    PolylineOptions options = new PolylineOptions();
+                    for (LatLng coord : leg) {
+                        options.add(coord);
+                    }
+
+                    //Finally, we add the polyline to the map
+                    mMap.addPolyline(options);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                //Null directions
+            }
+        }
+    }
+
+    public int[] getCoord(String points, int currIndex) {
+        int result = 1;
+        int shift = 0;
+        int character = 0x20;
+        int index = currIndex;
+        while (character >= 0x1f) {
+            //>=x1f is because every chunk gets ORd with 0x20 except the last one per code
+            if (index >= points.length()) break;
+            character = points.charAt(index);
+            character -= 64; //step 10
+            result += (character << shift); //step 7
+            shift += 5; //5-bit chunks
+            index++;
+        }
+
+        //Need to determine if original value was negative or not (step 5)
+        //Since there is a left shift of 1 before any inversion, a positive # will always have
+        //a 0 in the LSB
+        if ((result & 1) == 1) result = ~(result >> 1); //RSHF on inside so MSB = 1
+        else result = result >> 1; //step 4
+
+        return new int[] {result, index};
     }
 
     /**

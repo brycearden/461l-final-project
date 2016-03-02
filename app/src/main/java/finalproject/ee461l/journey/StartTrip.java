@@ -157,27 +157,11 @@ public class StartTrip extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            if (directions != null) {
-                //TODO: Pass this information from this AsyncTask to the JourneyHome Map fragment...
-                //Valid directions
-                String valid = null;
-                try {
-                    valid = directions.getString("status");
-                    if (!valid.equals("OK")) return;
-                    //For this particular function, we do not need to worry about waypoints
-                    JSONArray routes = directions.getJSONArray("routes");
-
-                    //Need to get the legs[]
-                    JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
-                    JSONArray legs = firstRoute.getJSONArray("legs");
-
-                    //Need to get the steps[] now
-                    JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
-                    JSONArray steps = firstLeg.getJSONArray("steps");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+            Intent intent = new Intent();
+            intent.putExtra("JSONDirections", result);
+            if (directions != null) setResult(RESULT_OK, intent);
+            else setResult(RESULT_CANCELED, intent);
+            finish();
         }
 
         protected String readStream(InputStream in) throws IOException {
