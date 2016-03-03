@@ -31,3 +31,15 @@ def admin_required(func):
         return func(*args, **kwargs)
     return decorated_view
 
+def time_job(stream=sys.stdout):
+    def actual_time_job(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            ret = func(*args, **kwargs)
+            end = time.time()
+            elapsed = end - start
+            stream.write("{} took {} seconds\n".format(func.__name__, elapsed))
+        return wrapper
+    return actual_time_job
+
