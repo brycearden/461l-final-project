@@ -10,10 +10,10 @@ or standard user credentials whenever we need to.
 from functools import wraps
 from google.appengine.api import users
 from flask import redirect, request, abort
-
+import time
 
 def login_required(func):
-    """Requires standard login credentials"""
+    """ Requires standard login credentials """
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not users.get_current_user():
@@ -23,7 +23,7 @@ def login_required(func):
 
 
 def admin_required(func):
-    """Requires App Engine admin credentials"""
+    """ Requires App Engine admin credentials """
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not users.get_current_user() or not users.is_current_user_admin():
@@ -32,6 +32,7 @@ def admin_required(func):
     return decorated_view
 
 def time_job(stream=sys.stdout):
+    """ Prints out execution time of a function """
     def actual_time_job(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
