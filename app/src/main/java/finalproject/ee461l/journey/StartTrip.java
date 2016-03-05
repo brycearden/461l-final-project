@@ -44,7 +44,6 @@ public class StartTrip extends AppCompatActivity {
         setContentView(R.layout.activity_start_trip);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
