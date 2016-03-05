@@ -5,4 +5,60 @@
     <string name="join">Join Road Trip</string>
     <string name="title_activity_start_trip">Start Road Trip</string>
     <string name="title_activity_join_trip">Join Road Trip</string>
+
+    <!-- Help screen -->
+    <string name="help_title"><b><u>Journey Help</u></b></string>
+    <string name="help_opening">
+        Thank you for choosing Journey. This page will help you use Journey so that you can get the most out of it.
+    </string>
+    <string name="help_home_title"><b>Home Screen</b></string>
+    <string name="help_home">
+        The opening screen of Journey is a Map that centers on your current location. You can navigate the map just
+        like you would navigate the map in Google Maps. From here, you can:\n
+        1. Access the Navigation Drawer\n
+        2. Start a new Road Trip\n
+        3. Join a Road Trip that has already been set up
+    </string>
+    <string name="help_nav_title"><b>Navigation Drawer</b></string>
+    <string name="help_nav">
+        The Navigation Drawer contains pages that need to be easily accessible from the Home Screen. The Navigation
+        Drawer contains the following pages:\n
+        1. Login / Logout - Click this to either login or logout of Journey\n
+        2. Settings - Use this page to change application settings, such as the maximum distance from your route that
+        you would like to stop\n
+        3. Help - This is the page you are currently on. This page contains information about using Journey\n
+        4. About - The About page is a page created by us, the developers, so you can learn a bit more about us and
+        about Journey
+    </string>
+    <string name="help_start_title"><b>Start Road Trip</b></string>
+    <string name="help_start">
+        The Start Road Trip page is where you will create the road trip that you would like to navigate. There are three
+        important aspects to this page:\n
+        1. Starting Destination - Enter the place you would like to start your road trip from\n
+        2. Final Destination - Not the Super Smash Bros. map! Enter the place that you would like to end your road trip
+        3. Caravan Trip - If you select this, your trip will become available for others to join. If you do this, once
+        the trip starts you will be deemed the "Trip Admin", while everyone who joined your trip will be "Trip Passengers"
+        (?)\n
+        Once finished, press the Begin Road Trip button to start the road trip!
+    </string>
+    <string name="help_join_title"><b>Join Road Trip</b></string>
+    <string name="help_join">
+        The Join Road Trip page is where you will find a road trip, created by our application, to join.\n
+        * Page WIP *
+    </string>
+    <string name="help_home_trip_title"><b>Trip Started</b></string>
+    <string name="help_home_trip">
+        Once you have either created or joined a trip, you will be brought back to the Home Screen (with the map), but
+        there are a few different options now:\n
+        1. Your route is displayed on the map as a line. * Additional info about route WIP *\n
+        2. To add a stop to your route (Trip Admin) or request a stop (Trip Passenger), press the Add/Request Stop button\n
+        \t<b>Note:</b> If you are driving, we advise you to use the voice control option so that you may focus on
+        the road\n
+        3. To use voice controls to add/request a route stop, press the microphone button on the right side of the display
+        * Commands WIP *
+    </string>
+    <string name="help_add_request_stop_title"><b>Add/Request a Stop</b></string>
+    <string name="help_add_request_stop">
+        * Page WIP *
+    </string>
 </resources>

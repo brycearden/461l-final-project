@@ -1,7 +1,9 @@
 package finalproject.ee461l.journey;
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,12 +15,16 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.text.Editable;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -47,10 +53,14 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
 
     private GoogleMap mMap;
     private MapFragment mapFragment;
+    private HelpFragment helpFragment;
     private static boolean firstUpdate;
     private static LatLng currentLocation;
     private static boolean useTTS;
     private static TextToSpeech speaker;
+    private static final int START_TRIP = 0;
+    private static final int JOIN_TRIP = 0;
+    private static final int VOICE_START = 0;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -61,9 +71,13 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_journey_home);
+
+        //Initialize fragments
+        mapFragment = MapFragment.newInstance();
+        helpFragment = HelpFragment.newInstance();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         FragmentManager manager = getFragmentManager();
-        mapFragment = MapFragment.newInstance();
         manager.beginTransaction().add(R.id.home_view, mapFragment).commit();
         mapFragment.getMapAsync(this);
         JourneyHome.firstUpdate = true;
@@ -73,6 +87,8 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         ArrayList<String> navItems = new ArrayList<String>();
         navItems.add("Log In");
         navItems.add("Settings");
+        navItems.add("Help");
+        navItems.add("About");
 
         DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ListView mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -95,7 +111,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         });
 
         //Let's also set up the TTS engine
-        speaker = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        JourneyHome.speaker = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
@@ -116,7 +132,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 0) {
+        if (requestCode == JourneyHome.START_TRIP) {
             // From Start Handler
             if (resultCode == RESULT_OK) {
                 //It worked
@@ -220,7 +236,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                 //Null directions
             }
         }
-        else if (requestCode == 2) {
+        else if (requestCode == JourneyHome.VOICE_START) {
             //Voice recognition
             if (resultCode == RESULT_OK) {
                 //Currently just going to repeat what was said here
@@ -242,7 +258,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                 else {
                     speaker.speak(results.get(0), TextToSpeech.QUEUE_FLUSH, null);
                 }
-                
+
             }
         }
     }
@@ -277,7 +293,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        startActivityForResult(intent, 2);
+        startActivityForResult(intent, JourneyHome.VOICE_START);
     }
 
     /**
@@ -289,7 +305,7 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     public void startHandler(View view) {
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
-        startActivityForResult(intent, 0);
+        startActivityForResult(intent, JourneyHome.START_TRIP);
     }
 
     /**
@@ -369,13 +385,66 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     private class NavClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView parent, View view, int position, long id) {
+            DrawerLayout drawer = (DrawerLayout) JourneyHome.this.findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(Gravity.LEFT);
             switch (position) {
                 case 0:
                     //Log In
-                    System.out.println("Log In selected");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(JourneyHome.this);
+                    LayoutInflater inflater = JourneyHome.this.getLayoutInflater();
+                    builder.setView(inflater.inflate(R.layout.login, null))
+                            .setPositiveButton("Log In", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //Log in here
+                                    EditText emailView = (EditText) JourneyHome.this.findViewById(R.id.email);
+                                    EditText passView = (EditText) JourneyHome.this.findViewById(R.id.password);
+                                    Editable emailEdit = emailView.getText();
+                                    Editable passEdit = passView.getText();
+                                    String email = emailEdit.toString();
+                                    String pass = passEdit.toString();
+                                    System.out.println("Email: " + email + ", Password: " + pass);
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            })
+                            .setTitle("Log Into Journey");
+                    builder.show();
+                    break;
                 case 1:
                     //Settings
                     System.out.println("Settings selected");
+                    break;
+                case 2:
+                    //Help
+                    //First we need to remove whatever buttons are on the screen
+                    if (JourneyHome.this.findViewById(R.id.start_trip) != null) {
+                        //Trip not started yet
+                        Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+                        button.setVisibility(View.GONE);
+                        button = (Button) JourneyHome.this.findViewById(R.id.join_trip);
+                        button.setVisibility(View.GONE);
+                    }
+                    else {
+                        //Trip started
+                        Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+                        button.setVisibility(View.GONE);
+                        ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
+                        ibutton.setVisibility(View.GONE);
+                    }
+
+                    FragmentManager manager = getFragmentManager();
+                    manager.beginTransaction().replace(R.id.home_view, helpFragment).commit();
+                    System.out.println("Help selected");
+                    break;
+                case 3:
+                    //About
+                    System.out.println("About selected");
+                    break;
             }
         }
     }
