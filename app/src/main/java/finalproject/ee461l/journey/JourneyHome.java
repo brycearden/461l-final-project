@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -45,6 +46,7 @@ import java.util.Locale;
 public class JourneyHome extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private MapFragment mapFragment;
     private static boolean firstUpdate;
     private static LatLng currentLocation;
     private static boolean useTTS;
@@ -60,8 +62,9 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_journey_home);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
+        FragmentManager manager = getFragmentManager();
+        mapFragment = MapFragment.newInstance();
+        manager.beginTransaction().add(R.id.home_view, mapFragment).commit();
         mapFragment.getMapAsync(this);
         JourneyHome.firstUpdate = true;
         JourneyHome.useTTS = true;
@@ -112,13 +115,6 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(JourneyHome.currentLocation));
     }
 
-    private class NavClickListener implements ListView.OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView parent, View view, int position, long id) {
-            System.out.println("Testing the clicking of a button, with position " + position);
-        }
-    }
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 0) {
             // From Start Handler
@@ -149,9 +145,14 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                         startVoiceComm(v);
                     }
                 });
-                speech.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                speech.layout(50, 100, 0, 0);
+
+                //Now we need to deal with Layout parameters
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                params.addRule(RelativeLayout.CENTER_VERTICAL);
+                speech.setLayoutParams(params);
                 speech.getBackground().setAlpha(0);
+                speech.setId(R.id.speech_button);
                 layout.addView(speech);
 
                 //Now we will deal with the route directions
@@ -348,14 +349,8 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
             mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         } catch (SecurityException e) {
+            //TODO: Add something here?
         }
-
-        // Add a marker in Sydney and move the camera
-        /*
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        */
     }
 
     public void updateLocation(Location location) {
@@ -366,5 +361,22 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
             JourneyHome.firstUpdate = false;
         }
         JourneyHome.currentLocation = currentLoc;
+    }
+
+    /**
+     * This class serves as the onClickListener for our navigation drawer
+     */
+    private class NavClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            switch (position) {
+                case 0:
+                    //Log In
+                    System.out.println("Log In selected");
+                case 1:
+                    //Settings
+                    System.out.println("Settings selected");
+            }
+        }
     }
 }
