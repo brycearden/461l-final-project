@@ -3,8 +3,6 @@
 starts a new instance of your application. This runs before any
 WSGI applications specified in app.yaml are loaded.
 """
-# import sys, os
-# sys.path.insert(0, os.path.join(os.path.dirname(__file__)), 'venv/Lib/site-packages')
 
 from google.appengine.ext import vendor
 
