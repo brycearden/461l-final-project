@@ -45,6 +45,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -59,8 +60,8 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     private static boolean useTTS;
     private static TextToSpeech speaker;
     private static final int START_TRIP = 0;
-    private static final int JOIN_TRIP = 0;
-    private static final int VOICE_START = 0;
+    private static final int JOIN_TRIP = 1;
+    private static final int VOICE_START = 2;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -137,44 +138,13 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
             if (resultCode == RESULT_OK) {
                 //It worked
                 //We will start by changing the buttons on screen
-                ViewGroup layout = (RelativeLayout) JourneyHome.this.findViewById(R.id.journey_layout);
-                Button startButton = (Button) JourneyHome.this.findViewById(R.id.start_trip);
-                View joinButton = (Button) JourneyHome.this.findViewById(R.id.join_trip);
-                layout.removeView(joinButton);
-
-                //Will simply change the text and activity of the start button to "Add Stop"
-                startButton.setText("Add Stop to Route");
-                startButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        stopHandler(v);
-                    }
-                });
-
-                //Need to also add a speech button
-                ImageButton speech = new ImageButton(JourneyHome.this);
-                //Image edited from: http://3.bp.blogspot.com/-WOpREKAmsfY/Ua2uLrKiGuI/AAAAAAABJu0/yJt8I49pO5o/s640/chrome-iphone-voice-search-2.png
-                speech.setImageResource(R.drawable.google_microphone_logo);
-                speech.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        startVoiceComm(v);
-                    }
-                });
-
-                //Now we need to deal with Layout parameters
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                params.addRule(RelativeLayout.CENTER_VERTICAL);
-                speech.setLayoutParams(params);
-                speech.getBackground().setAlpha(0);
-                speech.setId(R.id.speech_button);
-                layout.addView(speech);
+                adjustView();
 
                 //Now we will deal with the route directions
                 JSONObject directions = null;
                 try {
                     directions = new JSONObject(data.getStringExtra("JSONDirections"));
+                    System.out.println(directions);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -184,41 +154,11 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                     valid = directions.getString("status");
                     if (!valid.equals("OK")) return;
                     //For this particular function, we do not need to worry about waypoints
-                    JSONArray routes = directions.getJSONArray("routes");
-
-                    //Need to get the legs[]
-                    JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
-                    JSONArray legs = firstRoute.getJSONArray("legs");
-
-                    //Need to get the steps[] now
-                    JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
-                    JSONArray steps = firstLeg.getJSONArray("steps");
+                    JSONArray steps = getRouteSteps(directions, true);
 
                     //Need to convert polyline points into legitimate points
                     //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-                    List<LatLng> leg = new ArrayList<LatLng>();
-                    for (int i = 0; i < steps.length(); i++) {
-                        String points = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
-                        double latitude = 0;
-                        double longitude = 0; //Out here b/c path uses relative lat/lng changes
-                        int index = 0;
-                        int length = points.length();
-                        while (index < length) {
-                            //Need to decode each character
-                            //Start with latitude
-                            int[] lat = getCoord(points, index);
-                            latitude += lat[0] / 1e5; //step 2
-                            index = lat[1];
-
-                            //Repeat with longitude
-                            int[] lng = getCoord(points, index);
-                            longitude += lng[0] / 1e5;
-                            index = lng[1];
-
-                            LatLng current = new LatLng(latitude, longitude);
-                            leg.add(current);
-                        }
-                    }
+                    List<LatLng> leg = convertPolyline(steps);
 
                     //Next we need to create a PolylineOptions object and give it all of the points in the step
                     PolylineOptions options = new PolylineOptions();
@@ -261,6 +201,101 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
 
             }
         }
+    }
+
+    public void adjustView() {
+        ViewGroup layout = (RelativeLayout) JourneyHome.this.findViewById(R.id.journey_layout);
+        Button startButton = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+        View joinButton = (Button) JourneyHome.this.findViewById(R.id.join_trip);
+        layout.removeView(joinButton);
+
+        //Will simply change the text and activity of the start button to "Add Stop"
+        startButton.setText("Add Stop to Route");
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopHandler(v);
+            }
+        });
+
+        //Need to also add a speech button
+        ImageButton speech = new ImageButton(JourneyHome.this);
+        //Image edited from: http://3.bp.blogspot.com/-WOpREKAmsfY/Ua2uLrKiGuI/AAAAAAABJu0/yJt8I49pO5o/s640/chrome-iphone-voice-search-2.png
+        speech.setImageResource(R.drawable.google_microphone_logo);
+        speech.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startVoiceComm(v);
+            }
+        });
+
+        //Now we need to deal with Layout parameters
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.addRule(RelativeLayout.CENTER_VERTICAL);
+        speech.setLayoutParams(params);
+        speech.getBackground().setAlpha(0);
+        speech.setId(R.id.speech_button);
+        layout.addView(speech);
+    }
+
+    public JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
+        JSONArray steps = null;
+        if (isFirstTime) {
+            //No waypoints
+            try {
+                JSONArray routes = directions.getJSONArray("routes");
+
+                //Need to get the legs[]
+                JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
+                JSONArray legs = firstRoute.getJSONArray("legs");
+
+                //Need to get the steps[] now
+                JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
+                steps = firstLeg.getJSONArray("steps");
+            }
+            catch (JSONException e) {
+                //JSON Error
+            }
+        }
+        else {
+            //At least 1 waypoint to worry about
+        }
+        return steps;
+    }
+
+    public ArrayList<LatLng> convertPolyline(JSONArray steps) {
+        ArrayList<LatLng> leg = new ArrayList<LatLng>();
+        for (int i = 0; i < steps.length(); i++) {
+            String points = "";
+            try {
+                points = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
+            }
+            catch (JSONException e) {
+                //JSON Error
+            }
+            double latitude = 0;
+            double longitude = 0; //Out here b/c path uses relative lat/lng changes
+            int index = 0;
+            int length = points.length();
+            while (index < length) {
+                //Need to decode each character
+                //Start with latitude
+                int[] lat = getCoord(points, index);
+                latitude += lat[0] / 1e5; //step 2
+                index = lat[1];
+
+                //Repeat with longitude
+                int[] lng = getCoord(points, index);
+                longitude += lng[0] / 1e5;
+                index = lng[1];
+
+                LatLng current = new LatLng(latitude, longitude);
+                leg.add(current);
+            }
+        }
+
+        return leg;
     }
 
     public int[] getCoord(String points, int currIndex) {
