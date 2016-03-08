@@ -1,7 +1,7 @@
 # development requirements pip install file
 # install with 'pip install -r dev_requirements.txt'
+
 Pillow
-jinga2
+jinja2
 simplejson
 unittest2
-
