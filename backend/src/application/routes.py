@@ -4,26 +4,31 @@ routes.py
 URL routing file for the flask framework
 
 """
+from flask import render_template
+from flask.ext.cors import CORS
+from flask_restful import reqparse, abort, Api, Resource
+from application import app
 
-# Import the Flask Framework
-from flask import Flask
-app = Flask(__name__)
-# Note: We don't need to call run() since our application is embedded within
-# the App Engine WSGI application server.
+from controllers.UserController import UserSelf
+from controllers.AuthController import login, logout
 
-@app.route('/')
-def hello():
-    """Return a friendly HTTP greeting."""
-    return 'Hello World!'
+# Allow cross domain requests from localhost
+CORS(app, resource={r"/api/*": {"origins" : "http://localhost:1234"}})
 
+# API endpoints
+api = Api(app)
+api.add_resource(UserSelf, '/api/users/self')
 
-@app.errorhandler(404)
-def page_not_found(e):
-    """Return a custom 404 error."""
-    return 'Sorry, Nothing at this URL.', 404
+# login page
+app.add_url_rule('/login', 'login', view_func=login)
+app.add_url_rule('/logout', 'logout', view_func=logout)
 
+# App Engine warm up handler
+# See http://code.google.com/appengine/docs/python/config/appconfig.html#Warming_Requests
+def warmup():
+    """App Engine warmup handler
+    See http://code.google.com/appengine/docs/python/config/appconfig.html#Warming_Requests
+    """
+    return ''
 
-@app.errorhandler(500)
-def application_error(e):
-    """Return a custom 500 error."""
-    return 'Sorry, unexpected error: {}'.format(e), 500
+app.add_url_rule('/api/_ah/warmup', 'warmup', view_func=warmup)

@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+secret_keys.py
 
 !backend/src/lib/README.md
 backend/src/.DS_Store
