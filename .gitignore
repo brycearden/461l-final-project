@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.pyc
 secret_keys.py
+/venv/*
 
 !backend/src/lib/README.md
 backend/src/.DS_Store
