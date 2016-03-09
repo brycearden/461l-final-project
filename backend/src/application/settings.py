@@ -6,16 +6,17 @@ This is the configuration file for the Flask application
 Important: Place all of the keys in a secret_keys.py file which should never be
 checked into the repository to save user information.
 """
+from .secret_keys import CSRF_SECRET_KEY, SESSION_KEY
 
 # from secret_keys import CSRF_SECRET_KEY, SESSION KEY
 
 class Config(object):
     # TODO: create the secret keys in a secret_keys.py file and determine if we
     # are going to be using a cache or not
-    SECRET_KEY = None
-    CSRF_SESSION_KEY = None
+    SECRET_KEY = CSRF_SECRET_KEY
+    CSRF_SESSION_KEY = SESSION_KEY
     # Flask cache settings
-    CACHE_TYPE = None
+    CACHE_TYPE = 'gaememcached'
 
 
 class Development(Config):
