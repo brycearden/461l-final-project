@@ -2,21 +2,18 @@ package finalproject.ee461l.journey;
 
 import android.app.AlertDialog;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,16 +25,21 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -45,23 +47,43 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class JourneyHome extends FragmentActivity implements OnMapReadyCallback {
+public class JourneyHome extends FragmentActivity implements
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private GoogleMap mMap;
+    //Google Maps
+    private LocationRequest mLocationRequest;
+    //To be used in MapSupport
+    static GoogleMap mMap;
+    static boolean firstUpdate;
+    static LatLng currentLocation;
+    static Marker marker;
+
+    //Fragments
     private MapFragment mapFragment;
     private HelpFragment helpFragment;
-    private static boolean firstUpdate;
-    private static LatLng currentLocation;
+
+    //Text To Speech
     private static boolean useTTS;
-    private static TextToSpeech speaker;
+    static TextToSpeech speaker;
+
+    //OnActivityResult Constants
     private static final int START_TRIP = 0;
     private static final int JOIN_TRIP = 1;
     private static final int VOICE_START = 2;
+    private static final int VOICE_REQUEST = 3;
+    private static final int VOICE_TIME = 4;
+    private static final int VOICE_DISTANCE = 5;
+    private static final int VOICE_CALC = 4;
+
+    //Waypoint adding
+    private String stopType;
+    private int timeToStop;
+    private int distanceFromRoute;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -72,6 +94,12 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_journey_home);
+
+        client = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
 
         //Initialize fragments
         mapFragment = MapFragment.newInstance();
@@ -118,12 +146,29 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
                 if (status != TextToSpeech.ERROR) {
                     //Failed to set up TTS engine
                     JourneyHome.speaker.setLanguage(Locale.US);
-                }
-                else {
+                } else {
                     JourneyHome.useTTS = false;
                 }
             }
         });
+
+        //Finally, initialize some globals
+        stopType = "";
+        timeToStop = 0;
+        distanceFromRoute = 0;
+        marker = null;
+    }
+
+    @Override
+    protected void onStart() {
+        client.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        client.disconnect();
+        super.onStop();
     }
 
     @Override
@@ -132,203 +177,55 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(JourneyHome.currentLocation));
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == JourneyHome.START_TRIP) {
-            // From Start Handler
-            if (resultCode == RESULT_OK) {
-                //It worked
-                //We will start by changing the buttons on screen
-                adjustView();
-
-                //Now we will deal with the route directions
-                JSONObject directions = null;
-                try {
-                    directions = new JSONObject(data.getStringExtra("JSONDirections"));
-                    System.out.println(directions);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                String valid = null;
-                try {
-                    valid = directions.getString("status");
-                    if (!valid.equals("OK")) return;
-                    //For this particular function, we do not need to worry about waypoints
-                    JSONArray steps = getRouteSteps(directions, true);
-
-                    //Need to convert polyline points into legitimate points
-                    //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-                    List<LatLng> leg = convertPolyline(steps);
-
-                    //Next we need to create a PolylineOptions object and give it all of the points in the step
-                    PolylineOptions options = new PolylineOptions();
-                    for (LatLng coord : leg) {
-                        options.add(coord);
-                    }
-
-                    //Finally, we add the polyline to the map
-                    mMap.addPolyline(options);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            else {
-                //Null directions
-            }
-        }
-        else if (requestCode == JourneyHome.VOICE_START) {
-            //Voice recognition
-            if (resultCode == RESULT_OK) {
-                //Currently just going to repeat what was said here
-                List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                System.out.println("Successful voice recog!");
-                System.out.println("Voice results: " + results);
-                System.out.println(results.get(0));
-
-                if (!JourneyHome.useTTS) {
-                    System.out.println("Failed to set up TTS");
-                    return;
-                }
-
-                //TTS is set up
-                //Currently just repeating what was just said
-                if (Build.VERSION.SDK_INT >= 21) {
-                    speaker.speak(results.get(0), TextToSpeech.QUEUE_FLUSH, null, "test");
-                }
-                else {
-                    speaker.speak(results.get(0), TextToSpeech.QUEUE_FLUSH, null);
-                }
-
-            }
-        }
-    }
-
-    public void adjustView() {
-        ViewGroup layout = (RelativeLayout) JourneyHome.this.findViewById(R.id.journey_layout);
-        Button startButton = (Button) JourneyHome.this.findViewById(R.id.start_trip);
-        View joinButton = (Button) JourneyHome.this.findViewById(R.id.join_trip);
-        layout.removeView(joinButton);
-
-        //Will simply change the text and activity of the start button to "Add Stop"
-        startButton.setText("Add Stop to Route");
-        startButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        mLocationRequest = MapSupport.createLocationRequest();
+        LocationSettingsRequest.Builder builder =
+                new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(client, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
             @Override
-            public void onClick(View v) {
-                stopHandler(v);
+            public void onResult(LocationSettingsResult locationSettingsResult) {
+                //Need to implement!
+                //URL: https://developer.android.com/training/location/change-location-settings.html
+                System.out.println("Result of PendingResult: " + locationSettingsResult);
             }
         });
 
-        //Need to also add a speech button
-        ImageButton speech = new ImageButton(JourneyHome.this);
-        //Image edited from: http://3.bp.blogspot.com/-WOpREKAmsfY/Ua2uLrKiGuI/AAAAAAABJu0/yJt8I49pO5o/s640/chrome-iphone-voice-search-2.png
-        speech.setImageResource(R.drawable.google_microphone_logo);
-        speech.setOnClickListener(new View.OnClickListener() {
+        com.google.android.gms.location.LocationListener listener = new com.google.android.gms.location.LocationListener() {
             @Override
-            public void onClick(View v) {
-                startVoiceComm(v);
+            public void onLocationChanged(Location location) {
+                MapSupport.updateLocation(location);
             }
-        });
-
-        //Now we need to deal with Layout parameters
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-        params.addRule(RelativeLayout.CENTER_VERTICAL);
-        speech.setLayoutParams(params);
-        speech.getBackground().setAlpha(0);
-        speech.setId(R.id.speech_button);
-        layout.addView(speech);
+        };
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                client, mLocationRequest, listener);
     }
 
-    public JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
-        JSONArray steps = null;
-        if (isFirstTime) {
-            //No waypoints
-            try {
-                JSONArray routes = directions.getJSONArray("routes");
-
-                //Need to get the legs[]
-                JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
-                JSONArray legs = firstRoute.getJSONArray("legs");
-
-                //Need to get the steps[] now
-                JSONObject firstLeg = legs.optJSONObject(0); //Once we add waypoints there will be more legs
-                steps = firstLeg.getJSONArray("steps");
-            }
-            catch (JSONException e) {
-                //JSON Error
-            }
-        }
-        else {
-            //At least 1 waypoint to worry about
-        }
-        return steps;
+    @Override
+    public void onConnectionSuspended(int cause) {
+        System.out.println("Connection suspended. Cause: " + cause);
     }
 
-    public ArrayList<LatLng> convertPolyline(JSONArray steps) {
-        ArrayList<LatLng> leg = new ArrayList<LatLng>();
-        for (int i = 0; i < steps.length(); i++) {
-            String points = "";
-            try {
-                points = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
-            }
-            catch (JSONException e) {
-                //JSON Error
-            }
-            double latitude = 0;
-            double longitude = 0; //Out here b/c path uses relative lat/lng changes
-            int index = 0;
-            int length = points.length();
-            while (index < length) {
-                //Need to decode each character
-                //Start with latitude
-                int[] lat = getCoord(points, index);
-                latitude += lat[0] / 1e5; //step 2
-                index = lat[1];
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // An unresolvable error has occurred and a connection to Google APIs
+        // could not be established. Display an error message, or handle
+        // the failure silently
 
-                //Repeat with longitude
-                int[] lng = getCoord(points, index);
-                longitude += lng[0] / 1e5;
-                index = lng[1];
-
-                LatLng current = new LatLng(latitude, longitude);
-                leg.add(current);
-            }
-        }
-
-        return leg;
-    }
-
-    public int[] getCoord(String points, int currIndex) {
-        int result = 1;
-        int shift = 0;
-        int character = 0x20;
-        int index = currIndex;
-        while (character >= 0x1f) {
-            //>=x1f is because every chunk gets ORd with 0x20 except the last one per code
-            if (index >= points.length()) break;
-            character = points.charAt(index);
-            character -= 64; //step 10
-            result += (character << shift); //step 7
-            shift += 5; //5-bit chunks
-            index++;
-        }
-
-        //Need to determine if original value was negative or not (step 5)
-        //Since there is a left shift of 1 before any inversion, a positive # will always have
-        //a 0 in the LSB
-        if ((result & 1) == 1) result = ~(result >> 1); //RSHF on inside so MSB = 1
-        else result = result >> 1; //step 4
-
-        return new int[] {result, index};
-    }
-
-    public void startVoiceComm(View view) {
-        //Start voice recognition activity
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        startActivityForResult(intent, JourneyHome.VOICE_START);
+        // ...
+        System.out.println("Connection Error");
     }
 
     /**
@@ -360,6 +257,283 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
         System.out.println("Called for a stop");
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == JourneyHome.START_TRIP) {
+            // From Start Handler
+            if (resultCode == RESULT_OK) {
+                //It worked
+                //We will start by changing the buttons on screen
+                adjustView();
+
+                //Now we will deal with the route directions
+                JSONObject directions = null;
+                try {
+                    directions = new JSONObject(data.getStringExtra("JSONDirections"));
+                    System.out.println(directions);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                String valid = null;
+                try {
+                    valid = directions.getString("status");
+                    if (!valid.equals("OK")) return;
+                    //For this particular function, we do not need to worry about waypoints
+                    JSONArray steps = MapSupport.getRouteSteps(directions, true);
+
+                    //Need to convert polyline points into legitimate points
+                    //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
+                    List<LatLng> leg = MapSupport.convertPolyline(steps);
+
+                    //Next we need to create a PolylineOptions object and give it all of the points in the step
+                    PolylineOptions options = new PolylineOptions();
+                    for (LatLng coord : leg) {
+                        options.add(coord);
+                    }
+
+                    //Finally, we add the polyline to the map
+                    mMap.addPolyline(options);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                //Null directions
+            }
+        }
+        else if (requestCode == JourneyHome.VOICE_START) {
+            //Voice recognition
+            if (resultCode == RESULT_OK) {
+                //Currently just going to repeat what was said here
+                if (!JourneyHome.useTTS) {
+                    //Cannot use speech engine in this case
+                    System.out.println("Failed to set up TTS");
+                    return;
+                }
+
+                //TTS is set up
+                while (speaker.isSpeaking()) {} //Right now doing a busy wait, definitely a better way to do this though
+                List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+                String phrase = results.get(0);
+                phrase = phrase.toLowerCase();
+                if (phrase.contains("request a stop") || phrase.contains("request stop") || phrase.contains("make a stop")
+                        || phrase.contains("make stop")) {
+                    //The user is asking to request a stop, so we need to handle appropriately
+                    VoiceSupport.tts("Would you like to stop for food, gas, sight-seeing, or other? Say 'cancel' to exit", "stopType");
+                    while (speaker.isSpeaking()) {}
+                    voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
+                }
+                else {
+                    //The user is not requesting a stop
+                    VoiceSupport.tts("To use me, say 'Request a Stop' or 'Make a Stop'. I will help with adding stops to your route", "help");
+                }
+            }
+        }
+        else if (requestCode == JourneyHome.VOICE_REQUEST) {
+            //User requested a type of stop
+            if (resultCode == RESULT_OK) {
+                List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                String phrase = results.get(0);
+                phrase = phrase.toLowerCase();
+                if (phrase.contains("food")) {
+                    stopType = "food";
+                }
+                else if (phrase.contains("gas")) {
+                    stopType = "gas";
+                }
+                else if (phrase.contains("sightseeing") || phrase.contains("sights")) {
+                    stopType = "sights";
+                }
+                else if (phrase.contains("other")) {
+                    stopType = "other";
+                }
+                else if (phrase.contains("cancel")) {
+                    VoiceSupport.tts("Cancelling stop addition...", "cancelStop");
+                    return;
+                }
+                else {
+                    VoiceSupport.tts("I'm sorry, please try again. Would you like to stop for food, gas, sight-seeing, or other? " +
+                            "Say 'cancel' to exit", "help2");
+                    while (speaker.isSpeaking()) {}
+                    voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
+                    return;
+                }
+
+                //Go to next step of process
+                VoiceSupport.tts("When would you like to stop? Either say a time or 'Within blank minutes'", "timeRequest");
+                while (speaker.isSpeaking()) {}
+                voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+            }
+        }
+        else if (requestCode == JourneyHome.VOICE_TIME) {
+            //User requested a time
+            if (resultCode == RESULT_OK) {
+                List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                String phrase = results.get(0);
+                phrase = phrase.toLowerCase();
+                if (phrase.contains("o'clock") || phrase.contains("oclock")) {
+                    //Time "on the hour"
+                    int hour = VoiceSupport.getTimeOnHour(phrase);
+
+                    //Current time
+                    int currentTime = VoiceSupport.getCurrentTime();
+                    if (currentTime > 779) hour += 720; //Make sure in the same time; this may need to change at some point?
+
+                    timeToStop = hour - currentTime; //This gets us an approximate time
+                    if (timeToStop <= 0) {
+                        VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
+                                "Either say a time or 'Within blank minutes'", "help3");
+                        while (speaker.isSpeaking()) {}
+                        voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                        return;
+                    }
+                    System.out.println("Calculated time to stop: " + timeToStop);
+                }
+                else if (phrase.contains(":")) {
+                    //Time with minutes included
+                    int time = VoiceSupport.getTime(phrase);
+
+                    //Current time
+                    int currentTime = VoiceSupport.getCurrentTime();
+                    if (currentTime > 779) time += 720;
+
+                    timeToStop = time - currentTime;
+                    if (timeToStop <= 0) {
+                        VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
+                                "Either say a time or 'Within blank minutes'", "help3");
+                        while (speaker.isSpeaking()) {}
+                        voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                        return;
+                    }
+                    System.out.println("Calculated time to stop: " + timeToStop);
+                }
+                else if (phrase.contains("within") || phrase.contains("with in")) {
+                    timeToStop = VoiceSupport.getTimeWithin(phrase);
+                    if (timeToStop == -1) {
+                        //There was an issue with parsing an integer
+                        VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                                "Either say a time or 'Within blank minutes'", "help3");
+                        while (speaker.isSpeaking()) {}
+                        voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                        return;
+                    }
+                    System.out.println("Calculated time to stop: " + timeToStop);
+                }
+                else {
+                    VoiceSupport.tts("I'm sorry, please try again. Either say a time or 'Within blank minutes'", "repeatTime");
+                    while (speaker.isSpeaking()) {}
+                    voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                    return;
+                }
+
+                //This means we now have a time. If distance is not defined, we will ask. Otherwise, move to calculation
+                if (distanceFromRoute == 0) {
+                    VoiceSupport.tts("How far off your route are you willing to go?", "distance");
+                    while (speaker.isSpeaking()) {}
+                    voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                }
+                else {
+                    VoiceSupport.tts("Finding stops, please wait...", "calculating");
+                    while (speaker.isSpeaking()) {}
+                    //voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                }
+            }
+        }
+        else if (requestCode == JourneyHome.VOICE_DISTANCE) {
+            //Distance request
+            if (resultCode == RESULT_OK) {
+                List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                String phrase = results.get(0);
+                phrase = phrase.toLowerCase();
+                if (phrase.contains("mile")) {
+                    int index = phrase.indexOf("mile");
+                    double calcDistance = VoiceSupport.getDistance(phrase, index);
+                    if (calcDistance == -1) {
+                        //There was an issue
+                        VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                                "How far off your route are you willing to go?", "help3");
+                        while (speaker.isSpeaking()) {}
+                        voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                        return;
+                    }
+
+                    //We need to convert into meters
+                    distanceFromRoute = (int) (calcDistance * 1609);
+                }
+                else if (phrase.contains("kilometer") || phrase.contains("kilometre")) {
+                    int index = phrase.indexOf("kilometer");
+                    if (index == -1) index = phrase.indexOf("kilometre");
+                    double calcDistance = VoiceSupport.getDistance(phrase, index);
+                    if (calcDistance == -1) {
+                        //There was an issue
+                        VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                                "How far off your route are you willing to go?", "help3");
+                        while (speaker.isSpeaking()) {}
+                        voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                        return;
+                    }
+
+                    //Convert to meters
+                    distanceFromRoute = (int) (calcDistance * 1000);
+                }
+                else {
+                    VoiceSupport.tts("I'm sorry, please try again. How far off your route are you willing to go?", "help4");
+                    while (speaker.isSpeaking()) {}
+                    voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                    return;
+                }
+
+                //Now we go to calculations
+                System.out.println("Distance: " + distanceFromRoute);
+            }
+        }
+    }
+
+    public void adjustView() {
+        ViewGroup layout = (RelativeLayout) JourneyHome.this.findViewById(R.id.journey_layout);
+        Button startButton = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+        View joinButton = (Button) JourneyHome.this.findViewById(R.id.join_trip);
+        layout.removeView(joinButton);
+
+        //Will simply change the text and activity of the start button to "Add Stop"
+        startButton.setText("Add Stop to Route");
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopHandler(v);
+            }
+        });
+
+        //Need to also add a speech button
+        ImageButton speech = new ImageButton(JourneyHome.this);
+        //Image edited from: http://3.bp.blogspot.com/-WOpREKAmsfY/Ua2uLrKiGuI/AAAAAAABJu0/yJt8I49pO5o/s640/chrome-iphone-voice-search-2.png
+        speech.setImageResource(R.drawable.google_microphone_logo);
+        speech.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                voiceComm("Start Stop Request Process by saying 'Request Stop' or 'Make Stop'", JourneyHome.VOICE_START);
+            }
+        });
+
+        //Now we need to deal with Layout parameters
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.addRule(RelativeLayout.CENTER_VERTICAL);
+        speech.setLayoutParams(params);
+        speech.getBackground().setAlpha(0);
+        speech.setId(R.id.speech_button);
+        layout.addView(speech);
+    }
+
+    public void voiceComm(String helpText, int resultId) {
+        //Start voice recognition activity
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, helpText);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        startActivityForResult(intent, resultId);
+    }
 
     /**
      * Manipulates the map once available.
@@ -374,44 +548,12 @@ public class JourneyHome extends FragmentActivity implements OnMapReadyCallback 
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                updateLocation(location);
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
-
-        // Register the listener with the Location Manager to receive location updates
         try {
             mMap.setMyLocationEnabled(true);
             mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         } catch (SecurityException e) {
             //TODO: Add something here?
         }
-    }
-
-    public void updateLocation(Location location) {
-        LatLng currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(currentLoc).title("Current Location"));
-        if (JourneyHome.firstUpdate) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLoc));
-            JourneyHome.firstUpdate = false;
-        }
-        JourneyHome.currentLocation = currentLoc;
     }
 
     /**
