@@ -44,6 +44,8 @@ public class MapSupport {
         return steps;
     }
 
+    //Note: This function was written on our own, but a few pieces of the polyline decryption were cited from
+    //      this GitHub repository: https://github.com/googlemaps/android-maps-utils, in the decode() function
     public static ArrayList<LatLng> convertPolyline(JSONArray steps) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
         for (int i = 0; i < steps.length(); i++) {
