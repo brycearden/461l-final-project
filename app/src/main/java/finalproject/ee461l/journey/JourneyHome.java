@@ -64,8 +64,8 @@ public class JourneyHome extends FragmentActivity implements
     static Marker marker;
 
     //Fragments
-    private MapFragment mapFragment;
-    private HelpFragment helpFragment;
+    private static MapFragment mapFragment;
+    private static HelpFragment helpFragment;
 
     //Text To Speech
     private static boolean useTTS;
