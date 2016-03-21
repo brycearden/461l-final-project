@@ -56,7 +56,7 @@ public class JourneyHome extends FragmentActivity implements
         OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     //Google Maps
-    private LocationRequest mLocationRequest;
+    private static LocationRequest mLocationRequest;
     //To be used in MapSupport
     static GoogleMap mMap;
     static boolean firstUpdate;
@@ -64,8 +64,8 @@ public class JourneyHome extends FragmentActivity implements
     static Marker marker;
 
     //Fragments
-    private static MapFragment mapFragment;
-    private static HelpFragment helpFragment;
+    private MapFragment mapFragment;
+    private HelpFragment helpFragment;
 
     //Text To Speech
     private static boolean useTTS;
@@ -89,6 +89,21 @@ public class JourneyHome extends FragmentActivity implements
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
+    private TextToSpeech getInstance() {
+        if (speaker != null) return speaker;
+        return new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    //Failed to set up TTS engine
+                    JourneyHome.speaker.setLanguage(Locale.US);
+                } else {
+                    JourneyHome.useTTS = false;
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,17 +155,7 @@ public class JourneyHome extends FragmentActivity implements
         });
 
         //Let's also set up the TTS engine
-        JourneyHome.speaker = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    //Failed to set up TTS engine
-                    JourneyHome.speaker.setLanguage(Locale.US);
-                } else {
-                    JourneyHome.useTTS = false;
-                }
-            }
-        });
+        JourneyHome.speaker = getInstance();
 
         //Finally, initialize some globals
         stopType = "";
