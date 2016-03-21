@@ -44,3 +44,4 @@ def time_job(stream=sys.stdout):
             stream.write("{} took {} seconds\n".format(func.__name__, elapsed))
         return wrapper
     return actual_time_job
+
