@@ -1,7 +1,17 @@
-# Development environment pip requirements file
-# Install via 'pip install -r requirements_dev.txt'
-
-Pillow
-jinja2
-simplejson
-unittest2
+blinker==1.4
+Flask==0.10.1
+Flask-Cache==0.13.1
+Flask-DebugToolbar==0.10.0
+Flask-WTF==0.12
+itsdangerous==0.24
+Jinja2==2.8
+linecache2==1.0.0
+MarkupSafe==0.23
+Pillow==3.1.1
+simplejson==3.8.2
+six==1.10.0
+traceback2==1.4.0
+unittest2==1.1.0
+Werkzeug==0.11.4
+wheel==0.24.0
+WTForms==2.1
