@@ -9,6 +9,9 @@ backend/src/.DS_Store
 # C extensions
 *.so
 
+# app.iml needs to be ignored
+app/app.iml
+
 # Distribution / packaging
 .Python
 env/
