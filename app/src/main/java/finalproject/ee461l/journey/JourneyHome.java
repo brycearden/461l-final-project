@@ -118,7 +118,7 @@ public class JourneyHome extends FragmentActivity implements
 
         //Initialize fragments
         mapFragment = MapFragment.newInstance();
-        helpFragment = HelpFragment.newInstance();
+        helpFragment = HelpFragment.getInstance();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         FragmentManager manager = getFragmentManager();

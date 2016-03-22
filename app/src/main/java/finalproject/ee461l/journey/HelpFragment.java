@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link HelpFragment#newInstance} factory method to
+ * Use the {@link HelpFragment#getInstance} factory method to
  * create an instance of this fragment.
  */
 public class HelpFragment extends Fragment {
@@ -18,6 +18,7 @@ public class HelpFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static HelpFragment INSTANCE;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -35,9 +36,11 @@ public class HelpFragment extends Fragment {
      * @return A new instance of fragment HelpFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static HelpFragment newInstance() {
-        HelpFragment fragment = new HelpFragment();
-        return fragment;
+    public static HelpFragment getInstance() {
+        if(INSTANCE == null){
+            INSTANCE = new HelpFragment();
+        }
+        return INSTANCE;
     }
 
     @Override
