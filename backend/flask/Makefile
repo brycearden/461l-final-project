@@ -8,7 +8,8 @@ venv:
 	. $(virtualenv_dir)/bin/activate
 
 deps:
-	pip install -Ur requirements_dev.txt
+	mkdir src/lib
+	pip install -Ur requirements_dev.txt -t src/lib
 
 keys:
 	./src/application/generate_keys.py
