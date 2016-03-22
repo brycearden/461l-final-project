@@ -5,6 +5,7 @@
     <string name="join">Join Road Trip</string>
     <string name="title_activity_start_trip">Start Road Trip</string>
     <string name="title_activity_join_trip">Join Road Trip</string>
+    <string name="google_app_id">vertical-mapper-123021</string>
 
     <!-- Help screen -->
     <string name="help_title"><b><u>Journey Help</u></b></string>

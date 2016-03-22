@@ -212,6 +212,7 @@ public class JourneyHome extends FragmentActivity implements
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            System.out.println("Don't have the permissions");
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
