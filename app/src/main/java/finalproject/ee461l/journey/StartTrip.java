@@ -49,12 +49,15 @@ public class StartTrip extends AppCompatActivity {
         Intent intent = getIntent();
 
         //Google Places
+        //Should just be able to use the client from JourneyHome?
+        /*
         GoogleApiClient mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .enableAutoManage(this, null)
                 .build();
+                */
 
         //Let's set up the Places Listener
         PlaceAutocompleteFragment startFragment = (PlaceAutocompleteFragment)
