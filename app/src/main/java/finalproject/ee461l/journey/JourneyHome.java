@@ -1,5 +1,7 @@
 package finalproject.ee461l.journey;
 
+import android.*;
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
@@ -79,6 +81,9 @@ public class JourneyHome extends FragmentActivity implements
     private static final int VOICE_TIME = 4;
     private static final int VOICE_DISTANCE = 5;
     private static final int VOICE_CALC = 4;
+
+    //Permissions Constants
+    private static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
 
     //Waypoint adding
     private String stopType;
@@ -198,25 +203,52 @@ public class JourneyHome extends FragmentActivity implements
             }
         });
 
-        com.google.android.gms.location.LocationListener listener = new com.google.android.gms.location.LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                MapSupport.updateLocation(location);
-            }
-        };
+        //Now we need to check app permissions
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            System.out.println("Don't have the permissions");
+            //TODO: Maybe check for the other dangerous permissions here?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                //TODO: show user why we need these permissions?
+            }
+            else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        },
+                        MY_PERMISSIONS_REQUEST_FINE_LOCATION);
+            }
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                client, mLocationRequest, listener);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_FINE_LOCATION:
+                //Request for fine location
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    com.google.android.gms.location.LocationListener listener = new com.google.android.gms.location.LocationListener() {
+                        @Override
+                        public void onLocationChanged(Location location) {
+                            MapSupport.updateLocation(location);
+                        }
+                    };
+                    try {
+                        LocationServices.FusedLocationApi.requestLocationUpdates(
+                                client, mLocationRequest, listener);
+                    }
+                    catch (SecurityException e) {
+                        //This should not happen since the permission has been granted!
+                        System.out.println("Permission was granted but still failed to get location?");
+                    }
+                } else {
+                    // Permission denied
+                    //TODO: Implement some handling of this situation
+                    System.out.println("Permission denied");
+                }
+                return;
+        }
     }
 
     @Override
