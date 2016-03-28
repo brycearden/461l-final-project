@@ -26,12 +26,7 @@ public class GeneralSupport {
         return navItems;
     }
 
-    public static void setupMap(FragmentManager manager, MapFragment mapFragment, JourneyHome home) {
-        manager.beginTransaction().add(R.id.home_view, mapFragment).commit();
-        mapFragment.getMapAsync(home);
-        JourneyHome.firstUpdate = true;
-        JourneyHome.useTTS = true;
-    }
+
 
     public static void navDrawer(ListView mDrawerList, DrawerLayout mDrawerLayout, Context context) {
         ArrayList<String> navItems = GeneralSupport.navDrawerItems();
@@ -53,7 +48,7 @@ public class GeneralSupport {
             }
         });
     }
-
+/*
     public static com.google.android.gms.location.LocationListener getLocationListener() {
         return new com.google.android.gms.location.LocationListener() {
             @Override
@@ -62,4 +57,5 @@ public class GeneralSupport {
             }
         };
     }
+*/
 }

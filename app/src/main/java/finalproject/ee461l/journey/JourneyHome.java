@@ -54,21 +54,13 @@ import java.util.Locale;
 public class JourneyHome extends FragmentActivity implements
         OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    //Google Maps
-    private static LocationRequest mLocationRequest;
-    //To be used in MapSupport
-    //kevin, if these are all used in MapSupport, make a class for them
-    static GoogleMap mMap;
-    static boolean firstUpdate;
-    static LatLng currentLocation;
-    static Marker marker;
 
-    //Fragments
-    private MapFragment mapFragment;
     private HelpFragment helpFragment;
 
 
-    VoiceSupport voice = new VoiceSupport(this);
+
+    protected VoiceSupport voice;
+    protected MapSupport map;
 
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
@@ -113,23 +105,16 @@ public class JourneyHome extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_journey_home);
 
-        client = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
 
         //Initialize fragments
-        mapFragment = MapFragment.newInstance();
+        //mapFragment = MapFragment.newInstance();
         helpFragment = HelpFragment.getInstance();
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         // Note: Doing it this way may be slower?
         FragmentManager manager = getFragmentManager();
-        GeneralSupport.setupMap(manager, mapFragment, this);
 
+        map = new MapSupport(this, manager);
+        voice = new VoiceSupport(this);
         //Navigation Drawer
         DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ListView mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -144,7 +129,6 @@ public class JourneyHome extends FragmentActivity implements
         stopType = "";
         timeToStop = 0;
         distanceFromRoute = 0;
-        marker = null;
     }
 
     @Override
@@ -162,14 +146,14 @@ public class JourneyHome extends FragmentActivity implements
     @Override
     protected void onRestart() {
         super.onRestart();
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(JourneyHome.currentLocation));
+        map.mMap.moveCamera(CameraUpdateFactory.newLatLng(map.currentLocation));
     }
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        mLocationRequest = MapSupport.createLocationRequest();
+        map.mLocationRequest = map.createLocationRequest();
         LocationSettingsRequest.Builder builder =
-                new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+                new LocationSettingsRequest.Builder().addLocationRequest(map.mLocationRequest);
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(client, builder.build());
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
@@ -198,9 +182,9 @@ public class JourneyHome extends FragmentActivity implements
             return;
         }
 
-        com.google.android.gms.location.LocationListener listener = GeneralSupport.getLocationListener();
+        //com.google.android.gms.location.LocationListener listener = map;
         LocationServices.FusedLocationApi.requestLocationUpdates(
-                client, mLocationRequest, listener);
+                client, map.mLocationRequest, map);
     }
 
     @Override
@@ -210,10 +194,10 @@ public class JourneyHome extends FragmentActivity implements
                 //Request for fine location
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
-                    com.google.android.gms.location.LocationListener listener = GeneralSupport.getLocationListener();
+                    //com.google.android.gms.location.LocationListener listener = GeneralSupport.getLocationListener();
                     try {
                         LocationServices.FusedLocationApi.requestLocationUpdates(
-                                client, mLocationRequest, listener);
+                                client, map.mLocationRequest, map);
                     }
                     catch (SecurityException e) {
                         //This should not happen since the permission has been granted!
@@ -328,11 +312,11 @@ public class JourneyHome extends FragmentActivity implements
             valid = directions.getString("status");
             if (!valid.equals("OK")) return;
             //For this particular function, we do not need to worry about waypoints
-            JSONArray steps = MapSupport.getRouteSteps(directions, true);
+            JSONArray steps = map.getRouteSteps(directions, true);
 
             //Need to convert polyline points into legitimate points
             //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-            List<LatLng> leg = MapSupport.convertPolyline(steps);
+            List<LatLng> leg = map.convertPolyline(steps);
 
             //Next we need to create a PolylineOptions object and give it all of the points in the step
             PolylineOptions options = new PolylineOptions();
@@ -341,7 +325,7 @@ public class JourneyHome extends FragmentActivity implements
             }
 
             //Finally, we add the polyline to the map
-            mMap.addPolyline(options);
+            map.mMap.addPolyline(options);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -405,15 +389,16 @@ public class JourneyHome extends FragmentActivity implements
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        map.mMap = googleMap;
 
         try {
-            mMap.setMyLocationEnabled(true);
-            mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
+            map.mMap.setMyLocationEnabled(true);
+            map.mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
         } catch (SecurityException e) {
             //TODO: Add something here?
         }
     }
+
 
     /**
      * This class serves as the onClickListener for our navigation drawer

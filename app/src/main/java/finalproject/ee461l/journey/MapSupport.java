@@ -1,10 +1,17 @@
 package finalproject.ee461l.journey;
 
+import android.app.FragmentManager;
 import android.location.Location;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -18,9 +25,52 @@ import java.util.ArrayList;
  * This class will have map helper functions.
  * These include Location Updates to calculations for Map Routes
  */
-public class MapSupport {
+public class MapSupport implements com.google.android.gms.location.LocationListener{
 
-    public static JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
+    protected JourneyHome journeyHome;
+
+    //Google Maps
+    protected LocationRequest mLocationRequest;
+    //To be used in MapSupport
+    //kevin, if these are all used in MapSupport, make a class for them
+    protected GoogleMap mMap;
+    protected boolean firstUpdate;
+    protected LatLng currentLocation;
+    protected Marker marker;
+    protected GoogleApiClient client;
+
+    //Fragments
+    private MapFragment mapFragment;
+
+    public MapSupport(JourneyHome home, FragmentManager manager){
+        journeyHome = home;
+        client = new GoogleApiClient.Builder(home)
+                .addConnectionCallbacks(home)
+                .addOnConnectionFailedListener(home)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+
+        mapFragment = MapFragment.newInstance();
+        setupMap(manager, mapFragment, home);
+
+        marker = null;
+
+    }
+
+    public void onLocationChanged(Location location) {
+        updateLocation(location);
+    }
+
+    public void setupMap(FragmentManager manager, MapFragment mapFragment, JourneyHome home) {
+        manager.beginTransaction().add(R.id.home_view, mapFragment).commit();
+        mapFragment.getMapAsync(home);
+        firstUpdate = true;
+        home.voice.useTTS = true;
+    }
+
+    public JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
         JSONArray steps = null;
         if (isFirstTime) {
             //No waypoints
@@ -47,7 +97,7 @@ public class MapSupport {
 
     //Note: This function was written on our own, but a few pieces of the polyline decryption were cited from
     //      this GitHub repository: https://github.com/googlemaps/android-maps-utils, in the decode() function
-    public static ArrayList<LatLng> convertPolyline(JSONArray steps) {
+    public ArrayList<LatLng> convertPolyline(JSONArray steps) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
@@ -105,18 +155,18 @@ public class MapSupport {
         return new int[] {result, index};
     }
 
-    public static void updateLocation(Location location) {
+    public void updateLocation(Location location) {
         LatLng currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
-        if (JourneyHome.marker != null) JourneyHome.marker.remove();
-        JourneyHome.marker = JourneyHome.mMap.addMarker(new MarkerOptions().position(currentLoc).title("Current Location"));
-        if (JourneyHome.firstUpdate) {
-            JourneyHome.mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLoc));
-            JourneyHome.firstUpdate = false;
+        if (marker != null) marker.remove();
+        marker = mMap.addMarker(new MarkerOptions().position(currentLoc).title("Current Location"));
+        if (firstUpdate) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLoc));
+            firstUpdate = false;
         }
-        JourneyHome.currentLocation = currentLoc;
+        currentLocation = currentLoc;
     }
 
-    public static LocationRequest createLocationRequest() {
+    public LocationRequest createLocationRequest() {
         LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
