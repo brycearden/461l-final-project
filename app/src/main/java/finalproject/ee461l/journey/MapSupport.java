@@ -19,6 +19,7 @@ import java.util.ArrayList;
  * These include Location Updates to calculations for Map Routes
  */
 public class MapSupport {
+
     public static JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
         JSONArray steps = null;
         if (isFirstTime) {

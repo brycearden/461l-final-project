@@ -4,9 +4,62 @@ import android.content.Intent;
 import android.os.Build;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.app.Activity;
 import android.view.View;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.app.FragmentManager;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
+import android.text.Editable;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+
 import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by kevinrosen1 on 3/14/16.
@@ -15,13 +68,212 @@ import java.util.Calendar;
  *  be used in onActivityResult()
  */
 public class VoiceSupport {
-    public static void tts(String phrase, String id) {
-        if (Build.VERSION.SDK_INT >= 21) {
-            JourneyHome.speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null, id);
+
+    //Text To Speech
+    static boolean useTTS;
+    static TextToSpeech speaker;
+    JourneyHome journeyHome;
+
+    public VoiceSupport(JourneyHome journeyHome){
+        //Let's also set up the TTS engine
+        speaker = journeyHome.getInstance();
+    }
+
+
+    public void startVoiceRecog(Intent data) {
+        if (!useTTS) {
+            //Cannot use speech engine in this case
+            System.out.println("Failed to set up TTS");
+            return;
+        }
+
+        //TTS is set up
+        while (speaker.isSpeaking()) {} //Right now doing a busy wait, definitely a better way to do this though
+        List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+        String phrase = results.get(0);
+        phrase = phrase.toLowerCase();
+        if (phrase.contains("request a stop") || phrase.contains("request stop") || phrase.contains("make a stop")
+                || phrase.contains("make stop")) {
+            //The user is asking to request a stop, so we need to handle appropriately
+            VoiceSupport.tts("Would you like to stop for food, gas, sight-seeing, or other? Say 'cancel' to exit", "stopType");
+            while (speaker.isSpeaking()) {}
+            journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
         }
         else {
-            JourneyHome.speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null);
+            //The user is not requesting a stop
+            VoiceSupport.tts("To use me, say 'Request a Stop' or 'Make a Stop'. I will help with adding stops to your route", "help");
         }
+    }
+
+    public String voiceStopRequested(Intent data) {
+        List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+        String phrase = results.get(0);
+        String stopType;
+        phrase = phrase.toLowerCase();
+        if (phrase.contains("food")) {
+            stopType = "food";
+        }
+        else if (phrase.contains("gas")) {
+            stopType = "gas";
+        }
+        else if (phrase.contains("sightseeing") || phrase.contains("sights")) {
+            stopType = "sights";
+        }
+        else if (phrase.contains("other")) {
+            stopType = "other";
+        }
+        else if (phrase.contains("cancel")) {
+            VoiceSupport.tts("Cancelling stop addition...", "cancelStop");
+            return new String();
+        }
+        else {
+            VoiceSupport.tts("I'm sorry, please try again. Would you like to stop for food, gas, sight-seeing, or other? " +
+                    "Say 'cancel' to exit", "help2");
+            while (speaker.isSpeaking()) {}
+            journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
+            return new String();
+        }
+
+        //Go to next step of process
+        VoiceSupport.tts("When would you like to stop? Either say a time or 'Within blank minutes'", "timeRequest");
+        while (speaker.isSpeaking()) {}
+        journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+
+        return stopType;
+    }
+
+    public static void tts(String phrase, String id) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null, id);
+        }
+        else {
+            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null);
+        }
+    }
+
+    public int voiceStopTime(Intent data) {
+        //Still could use some condensing
+        List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+        String phrase = results.get(0);
+        int timeToStop;
+        phrase = phrase.toLowerCase();
+        if (phrase.contains("o'clock") || phrase.contains("oclock")) {
+            //Time "on the hour"
+            int hour = VoiceSupport.getTimeOnHour(phrase);
+
+            //Current time
+            int currentTime = VoiceSupport.getCurrentTime();
+            if (currentTime > 779) hour += 720; //Make sure in the same time; this may need to change at some point?
+
+            timeToStop = hour - currentTime; //This gets us an approximate time
+            if (timeToStop <= 0) {
+                VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
+                        "Either say a time or 'Within blank minutes'", "help3");
+                while (speaker.isSpeaking()) {}
+                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                return timeToStop;
+            }
+            System.out.println("Calculated time to stop: " + timeToStop);
+        }
+        else if (phrase.contains(":")) {
+            //Time with minutes included
+            int time = VoiceSupport.getTime(phrase);
+
+            //Current time
+            int currentTime = VoiceSupport.getCurrentTime();
+            if (currentTime > 779) time += 720;
+
+            timeToStop = time - currentTime;
+            if (timeToStop <= 0) {
+                VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
+                        "Either say a time or 'Within blank minutes'", "help3");
+                while (speaker.isSpeaking()) {}
+                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                return timeToStop;
+            }
+            System.out.println("Calculated time to stop: " + timeToStop);
+        }
+        else if (phrase.contains("within") || phrase.contains("with in")) {
+            timeToStop = VoiceSupport.getTimeWithin(phrase);
+            if (timeToStop == -1) {
+                //There was an issue with parsing an integer
+                VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                        "Either say a time or 'Within blank minutes'", "help3");
+                while (speaker.isSpeaking()) {}
+                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                return timeToStop;
+            }
+            System.out.println("Calculated time to stop: " + timeToStop);
+        }
+        else {
+            VoiceSupport.tts("I'm sorry, please try again. Either say a time or 'Within blank minutes'", "repeatTime");
+            while (speaker.isSpeaking()) {}
+            journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+            return journeyHome.timeToStop;
+        }
+
+        //This means we now have a time. If distance is not defined, we will ask. Otherwise, move to calculation
+        if (journeyHome.distanceFromRoute == 0) {
+            VoiceSupport.tts("How far off your route are you willing to go?", "distance");
+            while (speaker.isSpeaking()) {}
+            journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+        }
+        else {
+            VoiceSupport.tts("Finding stops, please wait...", "calculating");
+            while (speaker.isSpeaking()) {}
+            //voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+        }
+        return timeToStop;
+    }
+
+    public int voiceStopDistance(Intent data) {
+        //Still could use some condensing
+        List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+        String phrase = results.get(0);
+        int distanceFromRoute;
+        phrase = phrase.toLowerCase();
+        if (phrase.contains("mile")) {
+            int index = phrase.indexOf("mile");
+            double calcDistance = VoiceSupport.getDistance(phrase, index);
+            if (calcDistance == -1) {
+                //There was an issue
+                VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                        "How far off your route are you willing to go?", "help3");
+                while (speaker.isSpeaking()) {}
+                journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                return -1;
+            }
+
+            //We need to convert into meters
+            distanceFromRoute = (int) (calcDistance * 1609);
+        }
+        else if (phrase.contains("kilometer") || phrase.contains("kilometre")) {
+            int index = phrase.indexOf("kilometer");
+            if (index == -1) index = phrase.indexOf("kilometre");
+            double calcDistance = VoiceSupport.getDistance(phrase, index);
+            if (calcDistance == -1) {
+                //There was an issue
+                VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
+                        "How far off your route are you willing to go?", "help3");
+                while (speaker.isSpeaking()) {}
+                journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                return -1;
+            }
+
+            //Convert to meters
+            distanceFromRoute = (int) (calcDistance * 1000);
+        }
+        else {
+            VoiceSupport.tts("I'm sorry, please try again. How far off your route are you willing to go?", "help4");
+            while (speaker.isSpeaking()) {}
+            journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+            return -1;
+        }
+
+        //Now we go to calculations
+        System.out.println("Distance: " + distanceFromRoute);
+        return distanceFromRoute;
     }
 
     public static int getCurrentTime() {
