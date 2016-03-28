@@ -1,11 +1,20 @@
 package finalproject.ee461l.journey;
 
+import android.*;
 import android.app.FragmentManager;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -13,6 +22,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.OnMapReadyCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +35,8 @@ import java.util.ArrayList;
  * This class will have map helper functions.
  * These include Location Updates to calculations for Map Routes
  */
-public class MapSupport implements com.google.android.gms.location.LocationListener{
+public class MapSupport implements com.google.android.gms.location.LocationListener,
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     protected JourneyHome journeyHome;
 
@@ -45,8 +56,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     public MapSupport(JourneyHome home, FragmentManager manager){
         journeyHome = home;
         client = new GoogleApiClient.Builder(home)
-                .addConnectionCallbacks(home)
-                .addOnConnectionFailedListener(home)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
@@ -59,13 +70,89 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     }
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        mLocationRequest = createLocationRequest();
+        LocationSettingsRequest.Builder builder =
+                new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(client, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult locationSettingsResult) {
+                //Need to implement!
+                //URL: https://developer.android.com/training/location/change-location-settings.html
+                System.out.println("Result of PendingResult: " + locationSettingsResult);
+            }
+        });
+
+        //Now we need to check app permissions
+        if (ActivityCompat.checkSelfPermission(journeyHome, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(journeyHome, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+            //TODO: Maybe check for the other dangerous permissions here?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(journeyHome, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                //TODO: show user why we need these permissions?
+            }
+            else {
+                ActivityCompat.requestPermissions(journeyHome,
+                        new String[]{
+                                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        },
+                        JourneyHome.MY_PERMISSIONS_REQUEST_FINE_LOCATION);
+            }
+            return;
+        }
+
+        //com.google.android.gms.location.LocationListener listener = map;
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                client, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        System.out.println("Connection suspended. Cause: " + cause);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // An unresolvable error has occurred and a connection to Google APIs
+        // could not be established. Display an error message, or handle
+        // the failure silently
+
+        // ...
+        System.out.println("Connection Error");
+    }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        try {
+            mMap.setMyLocationEnabled(true);
+            mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
+        } catch (SecurityException e) {
+            //TODO: Add something here?
+        }
+    }
+
     public void onLocationChanged(Location location) {
         updateLocation(location);
     }
 
     public void setupMap(FragmentManager manager, MapFragment mapFragment, JourneyHome home) {
         manager.beginTransaction().add(R.id.home_view, mapFragment).commit();
-        mapFragment.getMapAsync(home);
+        mapFragment.getMapAsync(this);
         firstUpdate = true;
         home.voice.useTTS = true;
     }

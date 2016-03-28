@@ -37,7 +37,7 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
+
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -51,8 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class JourneyHome extends FragmentActivity implements
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class JourneyHome extends FragmentActivity {
 
 
     private HelpFragment helpFragment;
@@ -72,7 +71,7 @@ public class JourneyHome extends FragmentActivity implements
     public static final int VOICE_CALC = 4;
 
     //Permissions Constants
-    private static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
+    public static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
 
     //Waypoint adding
     protected String stopType;
@@ -85,6 +84,7 @@ public class JourneyHome extends FragmentActivity implements
     GoogleApiClient client;
 
 
+    //only reason this is in
     protected TextToSpeech getInstance() {
         if (voice.speaker != null) return voice.speaker;
         return new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -149,43 +149,7 @@ public class JourneyHome extends FragmentActivity implements
         map.mMap.moveCamera(CameraUpdateFactory.newLatLng(map.currentLocation));
     }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        map.mLocationRequest = map.createLocationRequest();
-        LocationSettingsRequest.Builder builder =
-                new LocationSettingsRequest.Builder().addLocationRequest(map.mLocationRequest);
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(client, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult locationSettingsResult) {
-                //Need to implement!
-                //URL: https://developer.android.com/training/location/change-location-settings.html
-                System.out.println("Result of PendingResult: " + locationSettingsResult);
-            }
-        });
 
-        //Now we need to check app permissions
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //TODO: Maybe check for the other dangerous permissions here?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                //TODO: show user why we need these permissions?
-            }
-            else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                        },
-                        MY_PERMISSIONS_REQUEST_FINE_LOCATION);
-            }
-            return;
-        }
-
-        //com.google.android.gms.location.LocationListener listener = map;
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                client, map.mLocationRequest, map);
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -212,20 +176,7 @@ public class JourneyHome extends FragmentActivity implements
         }
     }
 
-    @Override
-    public void onConnectionSuspended(int cause) {
-        System.out.println("Connection suspended. Cause: " + cause);
-    }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // An unresolvable error has occurred and a connection to Google APIs
-        // could not be established. Display an error message, or handle
-        // the failure silently
-
-        // ...
-        System.out.println("Connection Error");
-    }
 
     /**
      * This function gets called when the "Start Road Trip" button is pressed
@@ -376,27 +327,6 @@ public class JourneyHome extends FragmentActivity implements
         speech.getBackground().setAlpha(0);
         speech.setId(R.id.speech_button);
         layout.addView(speech);
-    }
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        map.mMap = googleMap;
-
-        try {
-            map.mMap.setMyLocationEnabled(true);
-            map.mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-        } catch (SecurityException e) {
-            //TODO: Add something here?
-        }
     }
 
 
