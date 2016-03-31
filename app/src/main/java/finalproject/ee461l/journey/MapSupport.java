@@ -53,15 +53,10 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     //Fragments
     private MapFragment mapFragment;
 
-    public MapSupport(JourneyHome home, FragmentManager manager){
+    public MapSupport(JourneyHome home, FragmentManager manager, GoogleApiClient client){
         journeyHome = home;
-        client = new GoogleApiClient.Builder(home)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
+
+        this.client = client;
 
         mapFragment = MapFragment.newInstance();
         setupMap(manager, mapFragment, home);
@@ -70,6 +65,9 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     }
 
+    public void setClient(GoogleApiClient client){
+        this.client = client;
+    }
     @Override
     public void onConnected(Bundle connectionHint) {
         mLocationRequest = createLocationRequest();

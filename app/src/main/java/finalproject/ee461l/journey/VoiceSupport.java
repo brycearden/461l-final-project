@@ -76,9 +76,24 @@ public class VoiceSupport {
 
     public VoiceSupport(JourneyHome journeyHome){
         //Let's also set up the TTS engine
-        speaker = journeyHome.getInstance();
+        this.journeyHome = journeyHome;
+        speaker = getInstance();
     }
 
+    protected TextToSpeech getInstance() {
+        if (speaker != null) return speaker;
+        return new TextToSpeech(journeyHome.getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    //Failed to set up TTS engine
+                    speaker.setLanguage(Locale.US);
+                } else {
+                    useTTS = false;
+                }
+            }
+        });
+    }
 
     public void startVoiceRecog(Intent data) {
         if (!useTTS) {

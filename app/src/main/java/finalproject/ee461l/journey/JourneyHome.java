@@ -85,26 +85,12 @@ public class JourneyHome extends FragmentActivity {
 
 
     //only reason this is in
-    protected TextToSpeech getInstance() {
-        if (voice.speaker != null) return voice.speaker;
-        return new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    //Failed to set up TTS engine
-                    voice.speaker.setLanguage(Locale.US);
-                } else {
-                    voice.useTTS = false;
-                }
-            }
-        });
-    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_journey_home);
-
+        this.setContentView(R.layout.activity_journey_home);
 
         //Initialize fragments
         //mapFragment = MapFragment.newInstance();
@@ -113,11 +99,20 @@ public class JourneyHome extends FragmentActivity {
         // Note: Doing it this way may be slower?
         FragmentManager manager = getFragmentManager();
 
-        map = new MapSupport(this, manager);
+        map = new MapSupport(this, manager, client);
         voice = new VoiceSupport(this);
+        client = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(map)
+                .addOnConnectionFailedListener(map)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+
+        map.setClient(client);
         //Navigation Drawer
-        DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ListView mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        DrawerLayout mDrawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+        ListView mDrawerList = (ListView) this.findViewById(R.id.left_drawer);
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new NavClickListener());
         //Rest of setup
