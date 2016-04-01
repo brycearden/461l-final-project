@@ -22,6 +22,7 @@ class UserModel(ndb.Model):
     trips = ndb.KeyProperty(kind='TripModel', repeated=True)
     distance = ndb.FloatProperty()
     isleader = ndb.BooleanProperty(default=True)
+    timestamp = ndb.DateTimeProperty(auto_now_add=True)
 
     @staticmethod
     def getSelf():
@@ -38,5 +39,5 @@ class UserModel(ndb.Model):
             'user_id': user.user_id(),
             'distance': user.distance,
             'isleader': user.isleader,
-            'trips': user.trips,
+            'trips': [key.urlsafe() for key in user.trips]
         }
