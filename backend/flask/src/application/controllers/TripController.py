@@ -18,7 +18,7 @@ trip_fields = {
     # are called NestedLists or something like that
 }
 
-class Trip(Resorce):
+class Trip(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument(

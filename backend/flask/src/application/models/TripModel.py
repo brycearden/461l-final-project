@@ -30,3 +30,16 @@ class TripModel(ndb.Model):
         user.trips.append(self.key)
         user.put()
 
+    @staticmethod
+    def format(trip):
+        if trip is None:
+            return {}
+
+        return {
+            'startloc': trip.startloc,
+            'endloc': trip.endloc,
+            'added_by': trip.added_by,
+            'timestamp': trip.timestamp,
+            'active': trip.active,
+            'waypoints:': [key.urlsafe() for key in trip.waypoints],
+        }
