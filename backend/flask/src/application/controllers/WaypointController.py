@@ -16,7 +16,7 @@ waypoint_fields = {
     # are called NestedLists or something like that
 }
 
-class Waypoint(Resorce):
+class Waypoint(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument(
@@ -43,7 +43,7 @@ class Waypoint(Resorce):
         print "We are in the delete function of Waypoint"
 
 
-class WaypointList(Resorce):
+class WaypointList(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument(

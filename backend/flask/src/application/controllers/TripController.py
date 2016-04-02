@@ -45,7 +45,7 @@ class Trip(Resource):
         print "We are in the delete function of Trip"
 
 
-class TripList(Resorce):
+class TripList(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument(
