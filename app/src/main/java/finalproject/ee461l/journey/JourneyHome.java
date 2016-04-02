@@ -26,10 +26,15 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -56,10 +61,9 @@ public class JourneyHome extends FragmentActivity {
 
     private HelpFragment helpFragment;
 
-
-
     protected VoiceSupport voice;
     protected MapSupport map;
+    protected NavDrawerSupport nav;
 
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
@@ -72,6 +76,10 @@ public class JourneyHome extends FragmentActivity {
 
     //Permissions Constants
     public static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
+
+    //Google sign-in
+    public static final int GOOGLE_ACCT_SIGNIN = 50;
+    private boolean isSignedIn;
 
     //Waypoint adding
     protected String stopType;
@@ -99,6 +107,11 @@ public class JourneyHome extends FragmentActivity {
         // Note: Doing it this way may be slower?
         FragmentManager manager = getFragmentManager();
 
+        //Configure Google sign-in options
+        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
         map = new MapSupport(this, manager, client);
         voice = new VoiceSupport(this);
         client = new GoogleApiClient.Builder(this)
@@ -107,6 +120,7 @@ public class JourneyHome extends FragmentActivity {
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, options)
                 .build();
 
         map.setClient(client);
@@ -116,14 +130,14 @@ public class JourneyHome extends FragmentActivity {
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new NavClickListener());
         //Rest of setup
-        GeneralSupport.navDrawer(mDrawerList, mDrawerLayout, this);
-
-
+        //GeneralSupport.navDrawer(mDrawerList, mDrawerLayout, this);
+        nav = new NavDrawerSupport(this, mDrawerList, mDrawerLayout);
 
         //Finally, initialize some globals
         stopType = "";
         timeToStop = 0;
         distanceFromRoute = 0;
+        isSignedIn = false;
     }
 
     @Override
@@ -238,6 +252,9 @@ public class JourneyHome extends FragmentActivity {
                 distanceFromRoute = voice.voiceStopDistance(data);
             }
         }
+        else if (requestCode == GOOGLE_ACCT_SIGNIN) {
+            isSignedIn = nav.signIn(data, this);
+        }
     }
 
     public void journeyStartTrip(Intent data) {
@@ -335,31 +352,16 @@ public class JourneyHome extends FragmentActivity {
             drawer.closeDrawer(Gravity.LEFT);
             switch (position) {
                 case 0:
-                    //Log In
-                    AlertDialog.Builder builder = new AlertDialog.Builder(JourneyHome.this);
-                    LayoutInflater inflater = JourneyHome.this.getLayoutInflater();
-                    builder.setView(inflater.inflate(R.layout.login, null))
-                            .setPositiveButton("Log In", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //Log in here
-                                    EditText emailView = (EditText) JourneyHome.this.findViewById(R.id.email);
-                                    EditText passView = (EditText) JourneyHome.this.findViewById(R.id.password);
-                                    Editable emailEdit = emailView.getText();
-                                    Editable passEdit = passView.getText();
-                                    String email = emailEdit.toString();
-                                    String pass = passEdit.toString();
-                                    System.out.println("Email: " + email + ", Password: " + pass);
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            })
-                            .setTitle("Log Into Journey");
-                    builder.show();
+                    if (!isSignedIn) {
+                        //Log In
+                        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(client);
+                        startActivityForResult(signInIntent, GOOGLE_ACCT_SIGNIN);
+                    }
+                    else {
+                        //Log out
+                        //NOTE: We have to confirm that onConnected was called before running this!
+                        isSignedIn = nav.signOut(JourneyHome.this, client);
+                    }
                     break;
                 case 1:
                     //Settings

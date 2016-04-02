@@ -26,8 +26,6 @@ public class GeneralSupport {
         return navItems;
     }
 
-
-
     public static void navDrawer(ListView mDrawerList, DrawerLayout mDrawerLayout, Context context) {
         ArrayList<String> navItems = GeneralSupport.navDrawerItems();
 
