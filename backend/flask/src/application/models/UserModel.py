@@ -12,32 +12,16 @@ distance - the maximum distance that we can search off of a route for
 isLeader - whether or not the User is the leader of a caravan
 """
 
-from . import TripModel
+
+from TripModel import *
+from BaseModel import *
 
 # Information on how to create the oneToMany Relationship was taken from here:
 # http://stackoverflow.com/questions/10077300/one-to-many-example-in-ndb
 # Information on how to create the manyToMany Relationship was taken from here:
 # http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
-class UserModel(ndb.Model):
-    trips = ndb.KeyProperty(kind='TripModel', repeated=True)
+class User(BaseModel):
+    trips = ndb.KeyProperty(kind='Trip', repeated=True)
     distance = ndb.FloatProperty()
     isleader = ndb.BooleanProperty(default=True)
-    timestamp = ndb.DateTimeProperty(auto_now_add=True)
 
-    @staticmethod
-    def getSelf():
-        return UserModel.format(users.get_current_user())
-
-    @staticmethod
-    def format(user):
-        if user is None:
-            return {}
-
-        return {
-            'email': user.email(),
-            'username': user.nickname(),
-            'user_id': user.user_id(),
-            'distance': user.distance,
-            'isleader': user.isleader,
-            'trips': [key.urlsafe() for key in user.trips]
-        }

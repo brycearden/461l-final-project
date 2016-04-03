@@ -10,11 +10,12 @@ Whatever else we decide is helpful info from the Google Places API
 """
 
 from google.appengine.ext import ndb
-from . import UserModel
+from BaseModel import *
+from UserModel import *
 
-class WayPointModel(ndb.Model):
+class WayPoint(BaseModel):
     lat = ndb.FloatProperty(required=True)
     lon = ndb.FloatProperty(required=True)
-    waypoint = ndb.KeyProperty(kind='TripModel')
+    waypoint = ndb.KeyProperty(kind='Trip')
     timestamp = ndb.DateTimeProperty(auto_now_add=True)
 
