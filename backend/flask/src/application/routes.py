@@ -15,7 +15,7 @@ from flask.ext.cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 
 from controllers.AuthController import login, logout
-from controllers.UserController import UserAPI
+from controllers.UserController import UserAPI, UserListAPI
 # from controllers.TripController import Trip, TripList
 # from controllers.WaypointController import Waypoint, WaypointList
 
@@ -48,6 +48,7 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 
 # RESTful API
 api.add_resource(UserAPI, '/api/users/<int:id>')
+api.add_resource(UserListAPI, '/api/users')
 
 # api.add_resource(TripList, '/api/trips')
 # api.add_resource(Trip, '/api/trips/<trip_id>')
