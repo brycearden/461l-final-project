@@ -36,7 +36,7 @@ class WaypointAPI(Resource):
 
     @marshal_with(waypoint_fields)
     def get(self, id):
-        w = ndb.Key(Waypoint, id).get()
+        w = Waypoint.get_by_id(id)
         if not w:
             abort(404)
         return w
@@ -44,7 +44,7 @@ class WaypointAPI(Resource):
     @marshal_with(waypoint_fields)
     def put(self, id):
         # TODO: need to fix put and make it work
-        w = ndb.Key(Waypoint, id).get()
+        w = Waypoint.get_by_id(id)
         if not w:
             abort(404)
         args = self.parse_args()
@@ -55,7 +55,7 @@ class WaypointAPI(Resource):
         return w
 
     def delete(self, id):
-        w = ndb.Key(Waypoint, id).get()
+        w = Waypoint.get_by_id(id)
         if not w:
             abort(404)
         w.key.delete()

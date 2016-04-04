@@ -37,7 +37,7 @@ class UserAPI(Resource):
 
     @marshal_with(user_fields)
     def get(self, id):
-        u = ndb.Key(User, id).get()
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         return u
@@ -45,19 +45,18 @@ class UserAPI(Resource):
     @marshal_with(user_fields)
     def put(self, id):
         # TODO: put is still not working
-        u = ndb.Key(User, id).get()
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         args = self.parse_args()
-        for key, val in args.items():
-            if val is not None:
-                print key, val
-                u[key] = val
+        print args
+        u.distance = args['distance']
+        u.isleader = args['isleader']
         u.put()
         return u
 
     def delete(self, id):
-        u = ndb.Key(User, id).get()
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         u.key.delete()
