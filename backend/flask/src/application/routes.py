@@ -47,7 +47,7 @@ app.add_url_rule('/login', 'login', view_func=login)
 app.add_url_rule('/logout', 'logout', view_func=logout)
 
 # RESTful API
-api.add_resource(UserAPI, '/api/users/<int:id>')
+api.add_resource(UserAPI, '/api/users/<string:id>')
 api.add_resource(UserListAPI, '/api/users')
 
 # api.add_resource(TripList, '/api/trips')
