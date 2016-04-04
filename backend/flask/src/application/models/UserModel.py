@@ -21,8 +21,8 @@ from BaseModel import *
 # Information on how to create the manyToMany Relationship was taken from here:
 # http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
 class User(BaseModel):
-    email = ndb.StringProperty()
+    email = ndb.StringProperty(default="abc123@yahoo.com")
     trips = ndb.KeyProperty(kind='Trip', repeated=True)
-    distance = ndb.FloatProperty()
+    distance = ndb.FloatProperty(default=5.0)
     isleader = ndb.BooleanProperty(default=True)
 

@@ -15,21 +15,18 @@ class UserAPI(Resource):
         parser.add_argument(
             'distance',
             type=float,
-            default=5.0,
             help='number of miles off of route user is willing to look',
             location='json',
         )
         parser.add_argument(
             'isleader',
             type=bool,
-            default=False,
             help='whether or not User is the leader of a Caravan',
             location='json',
         )
         parser.add_argument(
             'email',
             type=str,
-            default='ryanjmeek@utexas.edu',
             help='Users email',
             location='json',
         )
@@ -44,15 +41,19 @@ class UserAPI(Resource):
 
     @marshal_with(user_fields)
     def put(self, id):
-        # TODO: put is still not working
         u = User.get_by_id(id)
         if not u:
             abort(404)
         args = self.parse_args()
-        print args
-        u.distance = args['distance']
-        u.isleader = args['isleader']
-        u.put()
+
+        # apply command args
+        if args['distance'] is not None:
+            u.populate(distance=args['distance'])
+        if args['email'] is not None:
+            u.populate(email=args['email'])
+        if args['isleader'] is not None:
+            u.populate(isleader=args['isleader'])
+
         return u
 
     def delete(self, id):
@@ -71,21 +72,18 @@ class UserListAPI(Resource):
         parser.add_argument(
             'distance',
             type=float,
-            default=8.0,
             help='number of miles off of route user is willing to look',
             location='json',
         )
         parser.add_argument(
             'isleader',
             type=bool,
-            default=False,
             help='whether or not User is the leader of a Caravan',
             location='json',
         )
         parser.add_argument(
             'email',
             type=str,
-            default='ryanjmeek@utexas.edu',
             help='Users email',
             location='json',
         )
@@ -95,7 +93,14 @@ class UserListAPI(Resource):
     def post(self):
         args = self.parse_args()
         try:
-            u = User(**args)
+            u = User()
+            # apply command args
+            if args['distance'] is not None:
+                u.distance = args['distance']
+            if args['email'] is not None:
+                u.email = args['email']
+            if args['isleader'] is not None:
+                u.isleader = args['isleader']
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
             # u.key = ndb.Key(User, u.email)
