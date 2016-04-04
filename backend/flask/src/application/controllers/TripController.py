@@ -41,7 +41,7 @@ class TripAPI(Resource):
 
     @marshal_with(trip_fields)
     def get(self, id):
-        t = ndb.Key(Trip, id).get()
+        t = Trip.get_by_id(id)
         if not t:
             abort(404)
         # print "THIS IS THE TRIP: {0}".format(u)
@@ -50,7 +50,7 @@ class TripAPI(Resource):
     @marshal_with(trip_fields)
     def put(self, id):
         # TODO: put is still not working
-        t = ndb.Key(Trip, id).get()
+        t = Trip.get_by_id(id)
         if not t:
             abort(404)
         args = self.parse_args()
@@ -61,7 +61,7 @@ class TripAPI(Resource):
         return t
 
     def delete(self, id):
-        t = ndb.Key(Trip, id).get()
+        t = Trip.get_by_id(id)
         if not t:
             abort(404)
         t.key.delete()
