@@ -4,13 +4,12 @@ from flask_restful import reqparse, marshal_with, Resource, inputs, fields
 import logging
 import datetime
 from ..models.UserModel import *
-from fields import KeyField, user_fields
+from fields import KeyField, user_fields, waypoint_fields, trip_fields
 
 
 # UserSelf
 #post gets information about the current user
 class UserAPI(Resource):
-
     def parse_args(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
@@ -41,18 +40,20 @@ class UserAPI(Resource):
         u = ndb.Key(User, id).get()
         if not u:
             abort(404)
-        print "THIS IS THE USER: {0}".format(u)
         return u
 
     @marshal_with(user_fields)
     def put(self, id):
+        # TODO: put is still not working
         u = ndb.Key(User, id).get()
         if not u:
             abort(404)
-        args = parser.parse_args()
+        args = self.parse_args()
         for key, val in args.items():
             if val is not None:
+                print key, val
                 u[key] = val
+        u.put()
         return u
 
     def delete(self, id):
@@ -94,7 +95,6 @@ class UserListAPI(Resource):
     @marshal_with(user_fields)
     def post(self):
         args = self.parse_args()
-        print "we are in the list post function!"
         try:
             u = User(**args)
             u.key = ndb.Key(User, u.email)

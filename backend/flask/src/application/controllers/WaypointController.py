@@ -7,65 +7,90 @@ framework to marshal objects with the correct syntax.
 
 """
 
+from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
+from google.appengine.ext import ndb
 from flask_restful import reqparse, marshal_with, Resource, inputs, fields
+import logging
+import datetime
+from ..models.WaypointModel import *
+from fields import KeyField, waypoint_fields, trip_fields, user_fields
 
-waypoint_fields = {
-    'lat': fields.Float,
-    'long': fields.Float,
-    # TODO: figure out how to serialize keys with Flask RESTful I think they
-    # are called NestedLists or something like that
-}
-
-class Waypoint(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument(
-            'urlParam', type=str, required=True,
-            help='This is an example param from HTTP',
+class WaypointAPI(Resource):
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'lat',
+            type=bool,
+            default=0.0,
+            help='latitute value of the Waypoint',
             location='json',
         )
-        super(Waypoint, self).__init__()
+        parser.add_argument(
+            'lon',
+            type=float,
+            default=0.0,
+            help='longitude value of the Waypoint',
+            location='json'
+        )
+        return parser.parse_args()
 
     @marshal_with(waypoint_fields)
     def get(self, id):
-        print "We are in the get function of Waypoint"
-
-    @marshal_with(waypoint_fields)
-    def post(self, id):
-        print "We are in the post function of Waypoint"
+        w = ndb.Key(Waypoint, id).get()
+        if not w:
+            abort(404)
+        return w
 
     @marshal_with(waypoint_fields)
     def put(self, id):
-        print "We are in the update function of Waypoint"
+        # TODO: need to fix put and make it work
+        w = ndb.Key(Waypoint, id).get()
+        if not w:
+            abort(404)
+        args = self.parse_args()
+        for key, val in args.items():
+            if val is not None:
+                w[key] = val
+        w.put()
+        return w
 
-    @marshal_with(waypoint_fields)
     def delete(self, id):
-        print "We are in the delete function of Waypoint"
+        w = ndb.Key(Waypoint, id).get()
+        if not w:
+            abort(404)
+        w.key.delete()
+        return {
+            "msg": "object {} has been deleted".format(id),
+            "time": str(datetime.datetime.now()),
+        }
 
 
-class WaypointList(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument(
-            'urlParam', type=str, required=True,
-            help='This is an example param from HTTP',
+class WaypointListAPI(Resource):
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'lat',
+            type=bool,
+            default=0.0,
+            help='latitute value of the Waypoint',
             location='json',
         )
-        super(WaypointList, self).__init__()
+        parser.add_argument(
+            'lon',
+            type=float,
+            default=0.0,
+            help='longitude value of the Waypoint',
+            location='json'
+        )
+        return parser.parse_args()
 
     @marshal_with(waypoint_fields)
-    def get(self, id):
-        print "We are in the get function of WaypointList"
-
-    @marshal_with(waypoint_fields)
-    def post(self, id):
-        print "We are in the post function of WaypointList"
-
-    @marshal_with(waypoint_fields)
-    def put(self, id):
-        print "We are in the update function of WaypointList"
-
-    @marshal_with(waypoint_fields)
-    def delete(self, id):
-        print "We are in the delete function of WaypointList"
+    def post(self):
+        args = self.parse_args()
+        try:
+            w = Waypoint(**args)
+            w.put()
+        except BaseException as e:
+            abort(500, Error="Exception- {0}".format(e.message))
+        return w
 

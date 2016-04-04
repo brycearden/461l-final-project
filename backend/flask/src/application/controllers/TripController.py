@@ -6,69 +6,108 @@ HTTP requests for information from our backend. It uses the Flask RESTful
 framework to marshal objects with the correct syntax.
 
 """
-
+from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
+from google.appengine.ext import ndb
 from flask_restful import reqparse, marshal_with, Resource, inputs, fields
+import logging
+import datetime
+from ..models.TripModel import Trip
+from fields import KeyField, trip_fields, user_fields, waypoint_fields
 
-trip_fields = {
-    'startloc': fields.Float,
-    'endloc': fields.Float,
-    'timestamp': fields.DateTime,
-    'active': fields.Boolean,
-    # TODO: figure out how to serialize keys with Flask RESTful I think they
-    # are called NestedLists or something like that
-}
+class TripAPI(Resource):
 
-class Trip(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument(
-            'urlParam', type=str, required=True,
-            help='This is an example param from HTTP',
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'active',
+            type=bool,
+            default=True,
+            help='whether the current Trip is active or not',
             location='json',
         )
-        super(Trip, self).__init__()
+        parser.add_argument(
+            'startloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        parser.add_argument(
+            'endloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        return parser.parse_args()
 
     @marshal_with(trip_fields)
     def get(self, id):
-        print "We are in the get function of Trip"
-
-    @marshal_with(trip_fields)
-    def post(self, id):
-        print "We are in the post function of Trip"
+        t = ndb.Key(Trip, id).get()
+        if not t:
+            abort(404)
+        # print "THIS IS THE TRIP: {0}".format(u)
+        return t
 
     @marshal_with(trip_fields)
     def put(self, id):
-        print "We are in the update function of Trip"
+        # TODO: put is still not working
+        t = ndb.Key(Trip, id).get()
+        if not t:
+            abort(404)
+        args = self.parse_args()
+        for key, val in args.items():
+            if val is not None:
+                t[key] = val
+        t.put()
+        return t
 
-    @marshal_with(trip_fields)
     def delete(self, id):
-        print "We are in the delete function of Trip"
+        t = ndb.Key(Trip, id).get()
+        if not t:
+            abort(404)
+        t.key.delete()
+        return {
+            "msg": "object {} has been deleted".format(id),
+            "time": str(datetime.datetime.now()),
+        }
 
 
-class TripList(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument(
-            'urlParam', type=str, required=True,
-            help='This is an example param from HTTP',
+class TripListAPI(Resource):
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'active',
+            type=bool,
+            default=True,
+            help='whether the current Trip is active or not',
             location='json',
         )
-        super(TripList, self).__init__()
+        parser.add_argument(
+            'startloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        parser.add_argument(
+            'endloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        return parser.parse_args()
 
     @marshal_with(trip_fields)
-    def get(self, id):
-        print "We are in the get function of TripList"
-
-    @marshal_with(trip_fields)
-    def post(self, id):
-        print "We are in the post function of TripList"
-
-    @marshal_with(trip_fields)
-    def put(self, id):
-        print "We are in the update function of TripList"
-
-    @marshal_with(trip_fields)
-    def delete(self, id):
-        print "We are in the delete function of TripList"
-
+    def post(self):
+        print "we are in the tripList post method"
+        args = self.parse_args()
+        try:
+            print args
+            t = Trip(**args)
+            key = t.put()
+        except BaseException as e:
+            abort(500, Error="Exception- {0}".format(e.message))
+        return t
+        # return {
+        #     "msg": "object {} has been created".format(id),
+        #     "time": str(datetime.datetime.now()),
+        # }
 

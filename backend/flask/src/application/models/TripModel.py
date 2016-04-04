@@ -16,12 +16,12 @@ from BaseModel import *
 from UserModel import *
 from WaypointModel import *
 
-class TripModel(BaseModel):
-    startloc = ndb.FloatProperty()
-    endloc = ndb.FloatProperty()
-    added_by = ndb.UserProperty()
-    waypoints = ndb.KeyProperty(kind='Waypoint', repeated=True)
+class Trip(BaseModel):
     active = ndb.BooleanProperty(default=False)
+    added_by = ndb.UserProperty()
+    endloc = ndb.FloatProperty()
+    startloc = ndb.FloatProperty()
+    waypoints = ndb.KeyProperty(kind='Waypoint', repeated=True)
 
     @property
     def users(self):
