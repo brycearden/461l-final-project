@@ -16,6 +16,8 @@ from flask_restful import reqparse, abort, Api, Resource
 
 from controllers.AuthController import login, logout
 from controllers.UserController import UserAPI, UserListAPI
+from controllers.TripController import TripAPI, TripListAPI
+from controllers.WaypointController import WaypointAPI, WaypointListAPI
 # from controllers.TripController import Trip, TripList
 # from controllers.WaypointController import Waypoint, WaypointList
 
@@ -50,11 +52,11 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 api.add_resource(UserAPI, '/api/users/<string:id>')
 api.add_resource(UserListAPI, '/api/users')
 
-# api.add_resource(TripList, '/api/trips')
-# api.add_resource(Trip, '/api/trips/<trip_id>')
+api.add_resource(TripAPI, '/api/trips/<int:id>')
+api.add_resource(TripListAPI, '/api/trips')
 
-# api.add_resource(WaypointList, '/api/waypoints')
-# api.add_resource(Waypoint, '/api/waypoints/<waypoint_id>')
+api.add_resource(WaypointAPI, '/api/waypoints/<int:id>')
+api.add_resource(WaypointListAPI, '/api/waypoints')
 
 
 ## URL dispatch rules
