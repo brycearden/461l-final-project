@@ -27,6 +27,13 @@ class UserAPI(Resource):
             help='whether or not User is the leader of a Caravan',
             location='json',
         )
+        parser.add_argument(
+            'email',
+            type=str,
+            default='ryanjmeek@utexas.edu',
+            help='Users email',
+            location='json',
+        )
         return parser.parse_args()
 
     @marshal_with(user_fields)
@@ -64,7 +71,7 @@ class UserListAPI(Resource):
         parser.add_argument(
             'distance',
             type=float,
-            default=5.0,
+            default=8.0,
             help='number of miles off of route user is willing to look',
             location='json',
         )
@@ -75,6 +82,13 @@ class UserListAPI(Resource):
             help='whether or not User is the leader of a Caravan',
             location='json',
         )
+        parser.add_argument(
+            'email',
+            type=str,
+            default='ryanjmeek@utexas.edu',
+            help='Users email',
+            location='json',
+        )
         return parser.parse_args()
 
     @marshal_with(user_fields)
@@ -83,7 +97,8 @@ class UserListAPI(Resource):
         print "we are in the list post function!"
         try:
             u = User(**args)
-            key = u.put()
+            u.key = ndb.Key(User, u.email)
+            u.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
         return u
