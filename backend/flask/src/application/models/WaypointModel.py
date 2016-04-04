@@ -16,6 +16,6 @@ from UserModel import *
 class WayPoint(BaseModel):
     lat = ndb.FloatProperty(required=True)
     lon = ndb.FloatProperty(required=True)
-    waypoint = ndb.KeyProperty(kind='Trip')
+    trip = ndb.KeyProperty(kind='Trip')
     timestamp = ndb.DateTimeProperty(auto_now_add=True)
 
