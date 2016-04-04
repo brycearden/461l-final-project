@@ -10,6 +10,7 @@ user_fields = {
     'distance': fields.Float,
     'isleader': fields.Boolean,
     'key': KeyField,
+    'email': fields.String,
     'modified': fields.DateTime,
     'trips': fields.List(fields.Nested(KeyField)),
 }

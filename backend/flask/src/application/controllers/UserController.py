@@ -97,7 +97,9 @@ class UserListAPI(Resource):
         args = self.parse_args()
         try:
             u = User(**args)
-            u.key = ndb.Key(User, u.email)
+            # TODO: if there are doubles due to default initialization then do
+            # we have multiple keys pointing to the same thing?
+            # u.key = ndb.Key(User, u.email)
             u.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
