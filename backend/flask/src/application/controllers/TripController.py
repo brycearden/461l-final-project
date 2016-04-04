@@ -21,7 +21,6 @@ class TripAPI(Resource):
         parser.add_argument(
             'active',
             type=bool,
-            default=True,
             help='whether the current Trip is active or not',
             location='json',
         )
@@ -44,20 +43,23 @@ class TripAPI(Resource):
         t = Trip.get_by_id(id)
         if not t:
             abort(404)
-        # print "THIS IS THE TRIP: {0}".format(u)
         return t
 
     @marshal_with(trip_fields)
     def put(self, id):
-        # TODO: put is still not working
         t = Trip.get_by_id(id)
         if not t:
             abort(404)
         args = self.parse_args()
-        for key, val in args.items():
-            if val is not None:
-                t[key] = val
-        t.put()
+
+        # apply command args
+        if args['active'] is not None:
+            t.populate(active=args['active'])
+        if args['startloc'] is not None:
+            t.populate(startloc=args['startloc'])
+        if args['endloc'] is not None:
+            t.populate(endloc=args['endloc'])
+
         return t
 
     def delete(self, id):
@@ -77,7 +79,6 @@ class TripListAPI(Resource):
         parser.add_argument(
             'active',
             type=bool,
-            default=True,
             help='whether the current Trip is active or not',
             location='json',
         )
@@ -97,17 +98,19 @@ class TripListAPI(Resource):
 
     @marshal_with(trip_fields)
     def post(self):
-        print "we are in the tripList post method"
         args = self.parse_args()
         try:
-            print args
-            t = Trip(**args)
-            key = t.put()
+            t = Trip()
+
+            # apply command args
+            if args['active'] is not None:
+                t.active = args['active']
+            if args['startloc'] is not None:
+                t.startloc = args['startloc']
+            if args['endloc'] is not None:
+                t.endloc = args['endloc']
+            t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
         return t
-        # return {
-        #     "msg": "object {} has been created".format(id),
-        #     "time": str(datetime.datetime.now()),
-        # }
 

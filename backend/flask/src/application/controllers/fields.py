@@ -30,7 +30,7 @@ waypoint_fields = {
     'created': fields.DateTime,
     'key': KeyField,
     'lat': fields.Float,
-    'long': fields.Float,
+    'lon': fields.Float,
     'modified': fields.DateTime,
     'trip': KeyField,
 }

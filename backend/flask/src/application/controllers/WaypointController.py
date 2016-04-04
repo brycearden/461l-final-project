@@ -20,15 +20,13 @@ class WaypointAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             'lat',
-            type=bool,
-            default=0.0,
+            type=float,
             help='latitute value of the Waypoint',
             location='json',
         )
         parser.add_argument(
             'lon',
             type=float,
-            default=0.0,
             help='longitude value of the Waypoint',
             location='json'
         )
@@ -43,15 +41,16 @@ class WaypointAPI(Resource):
 
     @marshal_with(waypoint_fields)
     def put(self, id):
-        # TODO: need to fix put and make it work
         w = Waypoint.get_by_id(id)
         if not w:
             abort(404)
         args = self.parse_args()
-        for key, val in args.items():
-            if val is not None:
-                w[key] = val
-        w.put()
+
+        # apply command args
+        if args['lat'] is not None:
+            w.populate(lat=args['lat'])
+        if args['lon'] is not None:
+            w.populate(lon=args['lon'])
         return w
 
     def delete(self, id):
@@ -70,15 +69,13 @@ class WaypointListAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             'lat',
-            type=bool,
-            default=0.0,
+            type=float,
             help='latitute value of the Waypoint',
             location='json',
         )
         parser.add_argument(
             'lon',
             type=float,
-            default=0.0,
             help='longitude value of the Waypoint',
             location='json'
         )
@@ -88,7 +85,12 @@ class WaypointListAPI(Resource):
     def post(self):
         args = self.parse_args()
         try:
-            w = Waypoint(**args)
+            w = Waypoint()
+
+            if args['lat'] is not None:
+                w.lat = args['lat']
+            if args['lon'] is not None:
+                w.lon = args['lon']
             w.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
