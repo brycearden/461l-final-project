@@ -7,6 +7,7 @@
     <string name="title_activity_join_trip">Join Road Trip</string>
     <!--<string name="google_app_id">vertical-mapper-123021</string>-->
     <string name="server_client_id">538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com</string>
+    <string name="use_current_loc_button">Use Current Location</string>
 
     <!-- Help screen -->
     <string name="help_title"><b><u>Journey Help</u></b></string>

@@ -81,6 +81,9 @@ public class JourneyHome extends FragmentActivity {
     public static final int GOOGLE_ACCT_SIGNIN = 50;
     private boolean isSignedIn;
 
+    //Intent Constants
+    public static final String CURRENT_LOCATION = "finalproject.ee461l.journey.CURRENT_LOCATION";
+
     //Waypoint adding
     protected String stopType;
     protected int timeToStop;
@@ -196,6 +199,7 @@ public class JourneyHome extends FragmentActivity {
     public void startHandler(View view) {
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
+        intent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
         startActivityForResult(intent, JourneyHome.START_TRIP);
     }
 
@@ -292,6 +296,9 @@ public class JourneyHome extends FragmentActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        //Finally we will adjust the zoom to the appropriate level
+        map.adjustMapZoom(data);
     }
 
 

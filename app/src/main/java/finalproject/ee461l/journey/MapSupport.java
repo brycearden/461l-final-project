@@ -2,6 +2,7 @@ package finalproject.ee461l.journey;
 
 import android.*;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -49,6 +51,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     protected LatLng currentLocation;
     protected Marker marker;
     protected GoogleApiClient client;
+
+    private ArrayList<LatLng> route;
 
     //Fragments
     private MapFragment mapFragment;
@@ -126,8 +130,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
+     * This is where we can add markers or lines, add listeners or move the camera.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -212,6 +215,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
                 leg.add(current);
             }
         }
+        route = leg;
 
         return leg;
     }
@@ -257,5 +261,42 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
+    }
+
+    public void adjustMapZoom(Intent data) {
+        //First, let's get the latitude and longitude of the Start and End locations
+        String startData = data.getExtras().getString("StartLocLatLng");
+        String endData = data.getExtras().getString("EndLocLatLng");
+
+        //Start with StartLoc
+        LatLng startLoc = null;
+        if (startData.equals("Current")) startLoc = currentLocation;
+        else {
+            String latlng[] = startData.split(",");
+            latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
+            latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
+            startLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+        }
+        System.out.println("Start: " + startLoc + ", " + startData);
+
+        //EndLoc
+        String latlng[] = endData.split(",");
+        latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
+        latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
+        LatLng endLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+        System.out.println("End: " + endData + ", " + endLoc);
+
+        //Now adjust camera zoom
+        LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLoc).include(endLoc);
+        for (int i = 0; i < route.size(); i++) {
+            builder.include(route.get(i));
+        }
+        final LatLngBounds bounds = builder.build();
+        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50), 2000, null);
+            }
+        });
     }
 }

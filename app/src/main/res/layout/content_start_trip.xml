@@ -16,16 +16,22 @@
         android:id="@+id/start_place"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-        />
+        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment" />
+    <Button
+        android:id="@+id/use_current_loc"
+        android:text="@string/use_current_loc_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/start_place"
+        android:layout_marginTop="50sp"
+        android:onClick="useCurrentLoc"/>
     <fragment
         android:id="@+id/finish_place"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-        android:layout_alignTop="@+id/start_place"
-        android:layout_marginTop="50sp"
-        />
+        android:layout_alignTop="@+id/use_current_loc"
+        android:layout_marginTop="50sp" />
     <CheckBox
         android:id="@+id/caravan_box"
         android:layout_width="wrap_content"

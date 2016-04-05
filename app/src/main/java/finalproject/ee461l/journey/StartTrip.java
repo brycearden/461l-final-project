@@ -16,6 +16,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +30,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -37,6 +39,13 @@ public class StartTrip extends AppCompatActivity {
     private boolean caravan;
     private Place startLoc;
     private Place endLoc;
+
+    //For current location
+    private LocationSupport loc;
+    private PlaceAutocompleteFragment startFragment;
+    private boolean usingCurrentLoc;
+    private String currentLocation;
+    private String currentLocPlaceId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +56,15 @@ public class StartTrip extends AppCompatActivity {
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
+        String location = intent.getExtras().getString(JourneyHome.CURRENT_LOCATION);
+        String latlng[] = location.split(",");
+        latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
+        latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
+        currentLocation = latlng[0] + "," + latlng[1];
+
+        //Create LocationSupport object
+        loc = new LocationSupport();
+        loc.getCurrentLocationInfo(currentLocation);
 
         //Google Places
         //Should just be able to use the client from JourneyHome?
@@ -60,7 +78,7 @@ public class StartTrip extends AppCompatActivity {
                 */
 
         //Let's set up the Places Listener
-        PlaceAutocompleteFragment startFragment = (PlaceAutocompleteFragment)
+        startFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.start_place);
         PlaceAutocompleteFragment finishFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.finish_place);
@@ -71,6 +89,7 @@ public class StartTrip extends AppCompatActivity {
                 // TODO: Get info about the selected place.
                 System.out.println("Place: " + place.getName());
                 startLoc = place;
+                usingCurrentLoc = false;
             }
 
             @Override
@@ -99,6 +118,7 @@ public class StartTrip extends AppCompatActivity {
         finishFragment.setHint("Select Final Destination");
 
         caravan = false;
+        usingCurrentLoc = false;
     }
 
     public void caravanCheck(View view) {
@@ -106,8 +126,14 @@ public class StartTrip extends AppCompatActivity {
     }
 
     public void beginTrip(View view) {
+        if ((usingCurrentLoc && loc.getId() == null) || (!usingCurrentLoc && startLoc == null) || endLoc == null) return;
         new TripRequest().execute(startLoc, endLoc);
+    }
 
+    public void useCurrentLoc(View view) {
+        //User wants current location to be used
+        startFragment.setText("Current Location");
+        usingCurrentLoc = true;
     }
 
     private class TripRequest extends AsyncTask<Place, Void, String> {
@@ -128,8 +154,15 @@ public class StartTrip extends AppCompatActivity {
                 }
             }
             try {
-                URL url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startPlace.getId() +
-                        "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                URL url = null;
+                if (usingCurrentLoc) {
+                    url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + loc.getId() +
+                            "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                }
+                else {
+                    url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startPlace.getId() +
+                            "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                }
                 HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
@@ -152,6 +185,9 @@ public class StartTrip extends AppCompatActivity {
 
             Intent intent = new Intent();
             intent.putExtra("JSONDirections", result);
+            if (usingCurrentLoc) intent.putExtra("StartLocLatLng", "Current");
+            else intent.putExtra("StartLocLatLng", startLoc.getLatLng().toString());
+            intent.putExtra("EndLocLatLng", endLoc.getLatLng().toString());
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();
