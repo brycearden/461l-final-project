@@ -44,8 +44,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     //Google Maps
     protected LocationRequest mLocationRequest;
-    //To be used in MapSupport
-    //kevin, if these are all used in MapSupport, make a class for them
     protected GoogleMap mMap;
     protected boolean firstUpdate;
     protected LatLng currentLocation;
@@ -53,6 +51,10 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     protected GoogleApiClient client;
 
     private ArrayList<LatLng> route;
+
+    //Place IDs
+    private String startLocationId;
+    private String endLocationId;
 
     //Fragments
     private MapFragment mapFragment;
@@ -66,7 +68,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         setupMap(manager, mapFragment, home);
 
         marker = null;
-
+        startLocationId = null;
+        endLocationId = null;
     }
 
     public void setClient(GoogleApiClient client){
@@ -261,6 +264,11 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
+    }
+
+    public void setIds(Intent data) {
+        startLocationId = data.getExtras().getString("StartLocationId");
+        endLocationId = data.getExtras().getString("EndLocationId");
     }
 
     public void adjustMapZoom(Intent data) {

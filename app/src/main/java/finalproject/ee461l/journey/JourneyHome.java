@@ -264,6 +264,7 @@ public class JourneyHome extends FragmentActivity {
     public void journeyStartTrip(Intent data) {
         //We will start by changing the buttons on screen
         adjustView();
+        map.setIds(data);
 
         //Now we will deal with the route directions
         JSONObject directions = null;
