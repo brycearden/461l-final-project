@@ -137,6 +137,8 @@ public class StartTrip extends AppCompatActivity {
     }
 
     private class TripRequest extends AsyncTask<Place, Void, String> {
+        private String startId;
+        private String endId;
         protected String doInBackground(Place... places) {
             Place startPlace = null;
             Place endPlace = null;
@@ -158,11 +160,14 @@ public class StartTrip extends AppCompatActivity {
                 if (usingCurrentLoc) {
                     url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + loc.getId() +
                             "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                    startId = loc.getId();
                 }
                 else {
                     url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startPlace.getId() +
                             "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                    startId = startPlace.getId();
                 }
+                endId = endPlace.getId();
                 HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
@@ -188,6 +193,10 @@ public class StartTrip extends AppCompatActivity {
             if (usingCurrentLoc) intent.putExtra("StartLocLatLng", "Current");
             else intent.putExtra("StartLocLatLng", startLoc.getLatLng().toString());
             intent.putExtra("EndLocLatLng", endLoc.getLatLng().toString());
+            //Also add start/end place ids to intent
+            intent.putExtra("StartLocationId", startId);
+            intent.putExtra("EndLocationId", endId);
+
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();
