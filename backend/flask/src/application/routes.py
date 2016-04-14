@@ -55,11 +55,14 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 api.add_resource(UserAPI, '/api/user/<string:id>')
 api.add_resource(UserListAPI, '/api/users')
 
-api.add_resource(TripAPI, '/api/trips/<int:id>')
+api.add_resource(TripAPI, '/api/trip/<int:id>')
 api.add_resource(TripListAPI, '/api/trips')
 
-api.add_resource(WaypointAPI, '/api/waypoints/<int:id>')
+api.add_resource(TripWaypointAPI, '/api/trip/waypoint/<int:trip_id>')
+
+api.add_resource(WaypointAPI, '/api/waypoint/<int:id>')
 api.add_resource(WaypointListAPI, '/api/waypoints')
+
 
 
 ## URL dispatch rules
