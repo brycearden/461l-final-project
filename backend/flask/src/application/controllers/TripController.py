@@ -11,7 +11,7 @@ from google.appengine.ext import ndb
 from flask_restful import reqparse, marshal_with, Resource, inputs, fields
 import logging
 import datetime
-from ..models.TripModel import Trip
+from ..models.TripModel import TripModel
 from fields import KeyField, trip_fields, user_fields, waypoint_fields
 
 class TripAPI(Resource):
