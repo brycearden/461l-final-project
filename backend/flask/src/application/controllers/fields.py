@@ -5,6 +5,17 @@ class KeyField(fields.Raw):
     def format(self, value):
         return value.id()
 
+trip_fields = {
+    'active': fields.Boolean,
+    'added_by': fields.Nested(KeyField),
+    'created': fields.DateTime,
+    'endloc': fields.Float,
+    'key': KeyField,
+    'modified': fields.DateTime,
+    'startloc': fields.Float,
+    'waypoints': fields.List(fields.Nested(KeyField)),
+}
+
 user_fields = {
     'created': fields.DateTime,
     'distance': fields.Float,
@@ -12,18 +23,8 @@ user_fields = {
     'key': KeyField,
     'email': fields.String,
     'modified': fields.DateTime,
-    'trips': fields.List(fields.Nested(KeyField)),
-}
-
-trip_fields = {
-    'active': fields.Boolean,
-    'added_by': fields.Nested(user_fields),
-    'created': fields.DateTime,
-    'endloc': fields.Float,
-    'key': KeyField,
-    'modified': fields.DateTime,
-    'startloc': fields.Float,
-    'waypoints': fields.List(fields.Nested(KeyField)),
+    'trip_ids': fields.List(fields.Nested(KeyField)),
+    'trips': fields.List(fields.Nested(trip_fields))
 }
 
 waypoint_fields = {
