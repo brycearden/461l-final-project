@@ -28,21 +28,22 @@ class UserAPI(Resource):
             'email',
             type=str,
             help='Users email',
-            required=True,
             location='json',
         )
         return parser.parse_args()
 
     @marshal_with(user_fields)
-    def post(self):
+    def post(self, id):
         args = self.parse_args()
         try:
             u = User()
             # apply command args
+            if id is not None:
+                u.email = id
             if args['distance'] is not None:
                 u.distance = args['distance']
-            if args['email'] is not None:
-                u.email = args['email']
+            #if args['email'] is not None:
+                #u.email = args['email']
             if args['isleader'] is not None:
                 u.isleader = args['isleader']
             # TODO: if there are doubles due to default initialization then do
@@ -54,17 +55,17 @@ class UserAPI(Resource):
         return u
 
     @marshal_with(user_fields)
-    def get(self):
+    def get(self, id):
         args = self.parse_args()
-        u = User.get_by_id(args['email'])
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         return u
 
     @marshal_with(user_fields)
-    def put(self):
+    def put(self, id):
         args = self.parse_args()
-        u = User.get_by_id(args['email'])
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         args = self.parse_args()
@@ -79,9 +80,9 @@ class UserAPI(Resource):
 
         return u
 
-    def delete(self):
+    def delete(self, id):
         args = self.parse_args()
-        u = User.get_by_id(args['email'])
+        u = User.get_by_id(id)
         if not u:
             abort(404)
         u.key.delete()
