@@ -18,6 +18,7 @@ from controllers.AuthController import login, logout
 from controllers.UserController import UserAPI, UserListAPI
 from controllers.TripController import TripAPI, TripListAPI
 from controllers.WaypointController import WaypointAPI, WaypointListAPI
+from controllers.TripWaypointController import TripWaypointAPI
 # from controllers.TripController import Trip, TripList
 # from controllers.WaypointController import Waypoint, WaypointList
 
