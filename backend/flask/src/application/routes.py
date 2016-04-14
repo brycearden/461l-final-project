@@ -52,7 +52,7 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 # TODO: figure out if email can be used as key without duplicates due to
 # default values
 # api.add_resource(UserAPI, '/api/users/<string:id>')
-api.add_resource(UserAPI, '/api/users/<int:id>')
+api.add_resource(UserAPI, '/api/user')
 api.add_resource(UserListAPI, '/api/users')
 
 api.add_resource(TripAPI, '/api/trips/<int:id>')

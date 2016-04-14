@@ -28,20 +28,43 @@ class UserAPI(Resource):
             'email',
             type=str,
             help='Users email',
+            required=True,
             location='json',
         )
         return parser.parse_args()
 
     @marshal_with(user_fields)
-    def get(self, id):
-        u = User.get_by_id(id)
+    def post(self):
+        args = self.parse_args()
+        try:
+            u = User()
+            # apply command args
+            if args['distance'] is not None:
+                u.distance = args['distance']
+            if args['email'] is not None:
+                u.email = args['email']
+            if args['isleader'] is not None:
+                u.isleader = args['isleader']
+            # TODO: if there are doubles due to default initialization then do
+            # we have multiple keys pointing to the same thing?
+            u.key = ndb.Key(User, u.email)
+            u.put()
+        except BaseException as e:
+            abort(500, Error="Exception- {0}".format(e.message))
+        return u
+
+    @marshal_with(user_fields)
+    def get(self):
+        args = self.parse_args()
+        u = User.get_by_id(args['email'])
         if not u:
             abort(404)
         return u
 
     @marshal_with(user_fields)
-    def put(self, id):
-        u = User.get_by_id(id)
+    def put(self):
+        args = self.parse_args()
+        u = User.get_by_id(args['email'])
         if not u:
             abort(404)
         args = self.parse_args()
@@ -49,15 +72,16 @@ class UserAPI(Resource):
         # apply command args
         if args['distance'] is not None:
             u.populate(distance=args['distance'])
-        if args['email'] is not None:
-            u.populate(email=args['email'])
+#        if args['email'] is not None: lets not let people change their email
+#           u.populate(email=args['email'])
         if args['isleader'] is not None:
             u.populate(isleader=args['isleader'])
 
         return u
 
-    def delete(self, id):
-        u = User.get_by_id(id)
+    def delete(self):
+        args = self.parse_args()
+        u = User.get_by_id(args['email'])
         if not u:
             abort(404)
         u.key.delete()
@@ -103,7 +127,7 @@ class UserListAPI(Resource):
                 u.isleader = args['isleader']
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
-            # u.key = ndb.Key(User, u.email)
+            #u.key = ndb.Key(User, u.email)
             u.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
