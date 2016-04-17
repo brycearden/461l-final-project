@@ -1,0 +1,22 @@
+# Once flask is running, tests can be executed via:
+#   resttest.py http://localhost:8080 User.yaml
+
+---
+- config:
+    - testset: "First test of our application"
+
+- test:
+    - group: "User-Success"
+    - name: "Basic post"
+    - url: "/api/user/test123@school.edu"
+    - method: "POST"
+    - body: '{"distance": 4.657, "isleader": true, "email": "test123@school.edu"}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "User-Failure"
+    - name: "POST without key in URL"
+    - url: "/api/user/"
+    - method: "POST"
+    - body: '{"distance": 4.657, "isleader": true, "email": "test123@school.edu"}'
+    - headers: {Content-Type: application/json}
+
