@@ -13,7 +13,7 @@ trip_fields = {
     'key': KeyField,
     'modified': fields.DateTime,
     'startloc': fields.Float,
-    'waypoints': fields.List(fields.Nested(KeyField)),
+    'waypoint_ids': fields.List(fields.Nested(KeyField))
 }
 
 user_fields = {
@@ -24,7 +24,6 @@ user_fields = {
     'email': fields.String,
     'modified': fields.DateTime,
     'trip_ids': fields.List(fields.Nested(KeyField)),
-    'trips': fields.List(fields.Nested(trip_fields))
 }
 
 waypoint_fields = {
@@ -34,5 +33,17 @@ waypoint_fields = {
     'lon': fields.Float,
     'modified': fields.DateTime,
     'trip': KeyField,
+}
+
+trip_list_fields = {
+    'trips': fields.List(fields.Nested(trip_fields))
+}
+
+waypoint_list_fields = {
+    'waypoints': fields.List(fields.Nested(waypoint_fields))
+}
+
+user_list_fields = {
+    'users': fields.List(fields.Nested(user_fields))
 }
 
