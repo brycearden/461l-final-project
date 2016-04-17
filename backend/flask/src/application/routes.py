@@ -19,6 +19,7 @@ from controllers.UserController import UserAPI, UserListAPI
 from controllers.TripController import TripAPI, TripListAPI
 from controllers.WaypointController import WaypointAPI, WaypointListAPI
 from controllers.TripWaypointController import TripWaypointAPI
+from controllers.UserTripController import UserTripAPI
 # from controllers.TripController import Trip, TripList
 # from controllers.WaypointController import Waypoint, WaypointList
 
@@ -55,6 +56,7 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 # api.add_resource(UserAPI, '/api/users/<string:id>')
 api.add_resource(UserAPI, '/api/user/<string:id>')
 api.add_resource(UserListAPI, '/api/users')
+api.add_resource(UserTripAPI, '/api/user/trip/<int:user_id>')
 
 api.add_resource(TripAPI, '/api/trip/<int:id>')
 api.add_resource(TripListAPI, '/api/trips')

@@ -50,6 +50,7 @@ class TripWaypointAPI(Resource):
             abort(404)
 
         t.waypoints.append(w.key)
+        t.put()
         return t
 
     def delete(self, trip_id):
@@ -65,5 +66,6 @@ class TripWaypointAPI(Resource):
             abort(404)
 
         t.waypoints.remove(w.key)
+        t.put()
         return t
 

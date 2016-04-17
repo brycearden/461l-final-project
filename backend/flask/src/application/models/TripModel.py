@@ -36,3 +36,6 @@ class TripModel(ndb.Model):
         user.trips.append(self.key)
         user.put()
 
+    def remove_user(self, user):
+        user.trips.remove(self.key)
+        user.put()
