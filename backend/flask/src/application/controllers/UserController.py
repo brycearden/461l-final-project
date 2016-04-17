@@ -79,6 +79,7 @@ class UserAPI(Resource):
         return u
 
     def delete(self, id):
+        # TODO: update the delete functionality to remove key associations from lists
         args = self.parse_args()
         u = User.get_by_id(id)
         if not u:

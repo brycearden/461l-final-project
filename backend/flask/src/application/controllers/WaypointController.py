@@ -54,6 +54,7 @@ class WaypointAPI(Resource):
         return w
 
     def delete(self, id):
+        # TODO: update the delete functionality to remove key associations from lists
         w = Waypoint.get_by_id(id)
         if not w:
             abort(404)
