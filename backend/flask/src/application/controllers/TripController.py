@@ -63,6 +63,7 @@ class TripAPI(Resource):
         return t
 
     def delete(self, id):
+        # TODO: update the delete functionality to remove key associations from lists
         t = Trip.get_by_id(id)
         if not t:
             abort(404)
