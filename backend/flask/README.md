@@ -97,7 +97,10 @@ Use the "Flush Cache" button at http://localhost:8000/memcache to clear the cach
 
 Testing
 -------
-For testing we are using a service called PyRestTest. Information about PyRestTest and how to install can be found [here](http://github.com/svanoort/pyresttest)
+For testing we are using a service called PyRestTest. Information about
+PyRestTest and how to install can be found [here](http://github.com/svanoort/pyresttest). Additionally, examples of how to use this framework can be found [here](https://github.com/svanoort/pyresttest/tree/master/examples).
+
+
 Place all your tests in src/tests directory. Test runner is placed in src directory. To run your tests simply go to src directory and do:
 
 <pre class="console">
