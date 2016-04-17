@@ -15,10 +15,10 @@ from flask.ext.cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 
 from controllers.AuthController import login, logout
-from controllers.UserController import UserAPI, UserListAPI
+from controllers.UserController import UserAPI, UserTripListAPI
 from controllers.TripController import TripAPI, TripListAPI
-from controllers.WaypointController import WaypointAPI, WaypointListAPI
-from controllers.TripWaypointController import TripWaypointAPI
+from controllers.WaypointController import WaypointAPI
+from controllers.TripWaypointController import TripWaypointAPI, TripWaypointListAPI
 from controllers.UserTripController import UserTripAPI
 # from controllers.TripController import Trip, TripList
 # from controllers.WaypointController import Waypoint, WaypointList
@@ -55,16 +55,14 @@ app.add_url_rule('/logout', 'logout', view_func=logout)
 # default values
 # api.add_resource(UserAPI, '/api/users/<string:id>')
 api.add_resource(UserAPI, '/api/user/<string:id>')
-api.add_resource(UserListAPI, '/api/users')
-api.add_resource(UserTripAPI, '/api/user/trip/<int:user_id>')
+api.add_resource(UserTripListAPI, '/api/user/trip/list/<string:user_id>')
+api.add_resource(UserTripAPI, '/api/user/trip/<string:user_id>')
 
-api.add_resource(TripAPI, '/api/trip/<int:id>')
-api.add_resource(TripListAPI, '/api/trips')
-
+api.add_resource(TripAPI, '/api/trip/<string:id>')
+api.add_resource(TripWaypointListAPI, '/api/trip/waypoint/list/<int:trip_id>')
 api.add_resource(TripWaypointAPI, '/api/trip/waypoint/<int:trip_id>')
 
 api.add_resource(WaypointAPI, '/api/waypoint/<int:id>')
-api.add_resource(WaypointListAPI, '/api/waypoints')
 
 
 

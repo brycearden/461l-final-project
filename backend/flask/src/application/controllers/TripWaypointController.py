@@ -5,7 +5,7 @@ import logging
 import datetime
 from ..models.WaypointModel import *
 from ..models.TripModel import *
-from fields import KeyField, waypoint_fields, trip_fields, user_fields
+from fields import KeyField, waypoint_fields, trip_fields, user_fields, waypoint_list_fields
 
 class TripWaypointAPI(Resource):
     """ REST API for the api/trip/waypoint URL
@@ -68,4 +68,27 @@ class TripWaypointAPI(Resource):
         t.waypoints.remove(w.key)
         t.put()
         return t
+
+class TripWaypointListAPI(Resource):
+    """REST API for the api/trip/waypoint/list URL
+
+    returns a list of all waypoints associated with a trip
+    """
+    @marshal_with(waypoint_list_fields)
+    def get(self, trip_id):
+        data = []
+        t = trip.get_by_id(trip_id)
+
+        if t is None:
+            abort(404)
+
+        # get the list of objects associated with the User
+        for key in t.waypoints:
+            w = Waypoint.get(key)
+            if w is not None:
+                data.append(w)
+
+        return {
+            'waypoints': data
+        }
 
