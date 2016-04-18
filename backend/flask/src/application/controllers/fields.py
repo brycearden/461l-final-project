@@ -7,13 +7,13 @@ class KeyField(fields.Raw):
 
 trip_fields = {
     'active': fields.Boolean,
-    'added_by': fields.Nested(KeyField),
+    'added_by': KeyField,
     'created': fields.DateTime,
     'endloc': fields.Float,
     'key': KeyField,
     'modified': fields.DateTime,
     'startloc': fields.Float,
-    'waypoint_ids': fields.List(fields.Nested(KeyField))
+    'waypoint_ids': fields.List(KeyField),
 }
 
 user_fields = {
@@ -37,14 +37,14 @@ waypoint_fields = {
 }
 
 trip_list_fields = {
-    'trips': fields.List(fields.Nested(trip_fields))
+    'trips': fields.List(fields.Nested(trip_fields)),
 }
 
 waypoint_list_fields = {
-    'waypoints': fields.List(fields.Nested(waypoint_fields))
+    'waypoints': fields.List(fields.Nested(waypoint_fields)),
 }
 
 user_list_fields = {
-    'users': fields.List(fields.Nested(user_fields))
+    'users': fields.List(fields.Nested(user_fields)),
 }
 

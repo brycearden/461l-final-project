@@ -44,12 +44,12 @@ class UserAPI(Resource):
                 #u.email = args['email']
             if args['isleader'] is not None:
                 u.isleader = args['isleader']
-            #u.trip_ids = list()
+            u.trip_ids = list()
             #test = list()
-            #t = TripModel()
-            #t.startLoc = "post trip!"
-            #key = t.put()
-            #u.trip_ids.append(key)
+            t = TripModel()
+            t.startLoc = "post trip!"
+            key = t.put()
+            u.trip_ids.append(key)
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
 
@@ -63,10 +63,6 @@ class UserAPI(Resource):
     def get(self, id):
         args = self.parse_args()
         u = User.get_by_id(id)
-        u.trips = list()
-        for k in u.trip_ids:
-            trip = TripModel.get_by_id(k.id())
-            u.trips.append(trip)
         if not u:
             abort(404)
         #print "string user TRIPS: \n\n\n" + str(u.trips)
