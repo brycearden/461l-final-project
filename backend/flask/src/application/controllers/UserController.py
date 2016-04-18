@@ -69,6 +69,13 @@ class UserAPI(Resource):
             abort(404)
         args = self.parse_args()
 
+        #t = TripModel()
+        #t.startLoc = "put trip!"
+        #t.endLoc = "put trip!"
+        #key = t.put()
+        #print "put <4>"
+        #u.trip_ids.append(key)
+
         # apply command args
         if args['distance'] is not None:
             u.populate(distance=args['distance'])

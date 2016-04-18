@@ -42,8 +42,8 @@ class TripWaypointAPI(Resource):
         Does not create a new Waypoint object
         """
         args = self.parse_args()
-        t = Trip.get_by_id(trip_id)
-        w = Waypoint.get_by_id(args['waypoint_id'])
+        t = TripModel.get_by_id(trip_id)
+        w = WayPointModel.get_by_id(args['waypoint_id'])
 
         # if the waypoint or trips don't exist, abort
         if not t or not w:
@@ -59,8 +59,8 @@ class TripWaypointAPI(Resource):
         Does not delete the waypoint from the database
         """
         args = self.parse_args()
-        t = Trip.get_by_id(trip_id)
-        w = Waypoint.get_by_id(args['waypoint_id'])
+        t = TripModel.get_by_id(trip_id)
+        w = WaypointModel.get_by_id(args['waypoint_id'])
 
         if not t or not w:
             abort(404)
@@ -84,7 +84,7 @@ class TripWaypointListAPI(Resource):
 
         # get the list of objects associated with the User
         for key in t.waypoints:
-            w = Waypoint.get(key)
+            w = WaypointModel.get(key)
             if w is not None:
                 data.append(w)
 

@@ -34,14 +34,14 @@ class WaypointAPI(Resource):
 
     @marshal_with(waypoint_fields)
     def get(self, id):
-        w = Waypoint.get_by_id(id)
+        w = WaypointModel.get_by_id(id)
         if not w:
             abort(404)
         return w
 
     @marshal_with(waypoint_fields)
     def put(self, id):
-        w = Waypoint.get_by_id(id)
+        w = WaypointModel.get_by_id(id)
         if not w:
             abort(404)
         args = self.parse_args()
@@ -55,7 +55,7 @@ class WaypointAPI(Resource):
 
     def delete(self, id):
         # TODO: update the delete functionality to remove key associations from lists
-        w = Waypoint.get_by_id(id)
+        w = WaypointModel.get_by_id(id)
         if not w:
             abort(404)
         w.key.delete()
@@ -65,7 +65,7 @@ class WaypointAPI(Resource):
         }
 
 
-class WaypointListAPI(Resource):
+class CreateWaypointAPI(Resource):
     def parse_args(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
@@ -84,9 +84,10 @@ class WaypointListAPI(Resource):
 
     @marshal_with(waypoint_fields)
     def post(self):
+        print "createing a waypoint!"
         args = self.parse_args()
         try:
-            w = Waypoint()
+            w = WaypointModel()
 
             if args['lat'] is not None:
                 w.lat = args['lat']

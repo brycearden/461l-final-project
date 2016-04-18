@@ -13,7 +13,7 @@ trip_fields = {
     'key': KeyField,
     'modified': fields.DateTime,
     'startloc': fields.Float,
-    'waypoint_ids': fields.List(KeyField),
+    'waypoint_ids': fields.List(KeyField)
 }
 
 user_fields = {

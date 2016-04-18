@@ -12,5 +12,4 @@ class BaseModel(ndb.Model, BaseX):
     """
     created = ndb.DateTimeProperty(auto_now_add=True)
     modified = ndb.DateTimeProperty(auto_now=True, indexed=False)
-    # version = ndb.IntegerProperty(default=CURRENT_VERSION_TIMESTAMP, indexed=False)
 
