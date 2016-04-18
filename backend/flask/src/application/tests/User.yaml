@@ -3,7 +3,7 @@
 
 ---
 - config:
-    - testset: "First test of our application"
+    - testset: "User Tests"
 
 - test:
     - group: "User-Success"
@@ -18,5 +18,33 @@
     - url: "/api/user/"
     - method: "POST"
     - body: '{"distance": 4.657, "isleader": true, "email": "test123@school.edu"}'
+    - expected_status: [404]
     - headers: {Content-Type: application/json}
-
+- test:
+    - group: "User-Put"
+    - name: "Put to modify user"
+    - url: "/api/user/test123@school.edu"
+    - method: "PUT"
+    - body: '{"distance": 5.657, "isleader": false, "email": "test123@school.edu"}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "User-Get"
+    - name: "Get modified user"
+    - url: "/api/user/test123@school.edu"
+    - method: "GET"
+    - validators: # operator is applied as: <actual> <operator> <expected>
+      - compare: {jsonpath_mini: "distance",     comparator: "eq",     expected: 5.657}
+      - compare: {jsonpath_mini: "isleader",     comparator: "eq",     expected: false}
+- test:
+    - group: "User-Delete"
+    - name: "Put to modify user"
+    - url: "/api/user/test123@school.edu"
+    - method: "DELETE"
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "EXPECTED GET FAILURE"
+    - name: "Get a user thats been deleted"
+    - url: "/api/user/test123@school.edu"
+    - method: "GET"
+    - expected_status: [404]
+    - headers: {Content-Type: application/json}
