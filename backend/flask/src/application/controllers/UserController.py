@@ -52,6 +52,7 @@ class UserAPI(Resource):
             #u.trip_ids.append(key)
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
+
             u.key = ndb.Key(User, u.email)
             u.put()
         except BaseException as e:
@@ -86,6 +87,7 @@ class UserAPI(Resource):
         #key = t.put()
         #print "put <4>"
         #u.trip_ids.append(key)
+
         # apply command args
         if args['distance'] is not None:
             u.populate(distance=args['distance'])
@@ -108,23 +110,4 @@ class UserAPI(Resource):
             "msg": "object {} has been deleted".format(id),
             "time": str(datetime.datetime.now()),
         }
-
-class UserTripListAPI(Resource):
-    """Returns the List of Trips associated with a User"""
-
-    @marshal_with(user_list_fields)
-    def get(self, user_id):
-        data = []
-        u = User.get_by_id(user_id)
-
-        if u is None:
-            abort(404)
-
-        # get the list of objects associated with the User
-        for key in u.trips:
-            t = Trip.get(key)
-            if t is not None:
-                data.append(t)
-
-        return {'trips': data}, 200
 
