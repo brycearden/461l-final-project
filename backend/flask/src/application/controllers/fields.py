@@ -23,7 +23,8 @@ user_fields = {
     'key': KeyField,
     'email': fields.String,
     'modified': fields.DateTime,
-    'trip_ids': fields.List(fields.Nested(KeyField)),
+    'trip_ids': fields.List(KeyField),
+
 }
 
 waypoint_fields = {

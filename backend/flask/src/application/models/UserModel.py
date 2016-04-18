@@ -22,7 +22,8 @@ from BaseModel import *
 # http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
 class User(BaseModel):
     email = ndb.StringProperty(default="abc123@yahoo.com")
-    trips = ndb.KeyProperty(kind='Trip', repeated=True)
+    trip_ids = ndb.KeyProperty(kind='TripModel', repeated=True)
+    #trips = ndb.StructuredProperty(TripModel, repeated=True)
     distance = ndb.FloatProperty(default=5.0)
     isleader = ndb.BooleanProperty(default=True)
 
