@@ -55,10 +55,6 @@ class UserAPI(Resource):
     def get(self, id):
         args = self.parse_args()
         u = User.get_by_id(id)
-        u.trips = list()
-        for k in u.trip_ids:
-            trip = TripModel.get_by_id(k.id())
-            u.trips.append(trip)
         if not u:
             abort(404)
         #print "string user TRIPS: \n\n\n" + str(u.trips)
