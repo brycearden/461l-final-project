@@ -44,12 +44,12 @@ class UserAPI(Resource):
                 #u.email = args['email']
             if args['isleader'] is not None:
                 u.isleader = args['isleader']
-            u.trip_ids = list() 
+            #u.trip_ids = list()
             #test = list()
-            t = TripModel()
-            t.startLoc = "post trip!" 
-            key = t.put()
-            u.trip_ids.append(key)
+            #t = TripModel()
+            #t.startLoc = "post trip!"
+            #key = t.put()
+            #u.trip_ids.append(key)
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
             u.key = ndb.Key(User, u.email)
@@ -68,8 +68,8 @@ class UserAPI(Resource):
             u.trips.append(trip)
         if not u:
             abort(404)
-        print "string user TRIPS: \n\n\n" + str(u.trips)
-        print "string user: \n\n\n" + str(u)
+        #print "string user TRIPS: \n\n\n" + str(u.trips)
+        #print "string user: \n\n\n" + str(u)
         return u
 
     @marshal_with(user_fields)
@@ -80,12 +80,12 @@ class UserAPI(Resource):
             abort(404)
         args = self.parse_args()
 
-        t = TripModel()
-        t.startLoc = "put trip!" 
-        t.endLoc = "put trip!" 
-        key = t.put()
-        print "put <4>"
-        u.trip_ids.append(key)
+        #t = TripModel()
+        #t.startLoc = "put trip!" 
+        #t.endLoc = "put trip!" 
+        #key = t.put()
+        #print "put <4>"
+        #u.trip_ids.append(key)
         # apply command args
         if args['distance'] is not None:
             u.populate(distance=args['distance'])
