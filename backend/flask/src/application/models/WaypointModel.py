@@ -13,8 +13,8 @@ from google.appengine.ext import ndb
 from BaseModel import *
 from UserModel import *
 
-class WayPointModel(BaseModel):
-    lat = ndb.StringProperty(required=True)
-    lon = ndb.StringProperty(required=True)
+class WaypointModel(BaseModel):
+    lat = ndb.StringProperty(required=True, default=None)
+    lon = ndb.StringProperty(required=True, default=None)
     waypoint = ndb.KeyProperty(kind='TripModel')
 

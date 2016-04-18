@@ -70,13 +70,15 @@ class CreateWaypointAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             'lat',
-            type=float,
+            type=str,
+            default=None,
             help='latitute value of the Waypoint',
             location='json',
         )
         parser.add_argument(
             'lon',
-            type=float,
+            type=str,
+            default=None,
             help='longitude value of the Waypoint',
             location='json'
         )
@@ -84,15 +86,14 @@ class CreateWaypointAPI(Resource):
 
     @marshal_with(waypoint_fields)
     def post(self):
-        print "createing a waypoint!"
         args = self.parse_args()
         try:
             w = WaypointModel()
 
             if args['lat'] is not None:
-                w.lat = args['lat']
+                w.populate(lat=args['lat'])
             if args['lon'] is not None:
-                w.lon = args['lon']
+                w.populate(lon=args['lon'])
             w.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
