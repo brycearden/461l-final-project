@@ -38,7 +38,7 @@ class TripAPI(Resource):
         return parser.parse_args()
 
     @marshal_with(trip_fields)
-    def post(self):
+    def post(self, id):
         args = self.parse_args()
         try:
             t = Trip()
@@ -89,29 +89,4 @@ class TripAPI(Resource):
             "msg": "object {} has been deleted".format(id),
             "time": str(datetime.datetime.now()),
         }
-
-
-class TripListAPI(Resource):
-    def parse_args(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            'active',
-            type=bool,
-            help='whether the current Trip is active or not',
-            location='json',
-        )
-        parser.add_argument(
-            'startloc',
-            type=float,
-            help='starting GPS coordinate of the trip',
-            location='json'
-        )
-        parser.add_argument(
-            'endloc',
-            type=float,
-            help='starting GPS coordinate of the trip',
-            location='json'
-        )
-        return parser.parse_args()
-
 
