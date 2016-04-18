@@ -15,7 +15,6 @@ from ..models.TripModel import TripModel
 from fields import KeyField, trip_fields, user_fields, waypoint_fields
 
 class TripAPI(Resource):
-
     def parse_args(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
@@ -37,6 +36,24 @@ class TripAPI(Resource):
             location='json'
         )
         return parser.parse_args()
+
+    @marshal_with(trip_fields)
+    def post(self):
+        args = self.parse_args()
+        try:
+            t = Trip()
+
+            # apply command args
+            if args['active'] is not None:
+                t.active = args['active']
+            if args['startloc'] is not None:
+                t.startloc = args['startloc']
+            if args['endloc'] is not None:
+                t.endloc = args['endloc']
+            t.put()
+        except BaseException as e:
+            abort(500, Error="Exception- {0}".format(e.message))
+        return t
 
     @marshal_with(trip_fields)
     def get(self, id):
@@ -97,21 +114,4 @@ class TripListAPI(Resource):
         )
         return parser.parse_args()
 
-    @marshal_with(trip_fields)
-    def post(self):
-        args = self.parse_args()
-        try:
-            t = Trip()
-
-            # apply command args
-            if args['active'] is not None:
-                t.active = args['active']
-            if args['startloc'] is not None:
-                t.startloc = args['startloc']
-            if args['endloc'] is not None:
-                t.endloc = args['endloc']
-            t.put()
-        except BaseException as e:
-            abort(500, Error="Exception- {0}".format(e.message))
-        return t
 
