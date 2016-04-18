@@ -16,7 +16,7 @@ from flask_restful import reqparse, abort, Api, Resource
 
 from controllers.AuthController import login, logout
 from controllers.UserController import UserAPI
-from controllers.TripController import TripAPI, TripListAPI
+from controllers.TripController import TripAPI
 from controllers.WaypointController import WaypointAPI
 from controllers.TripWaypointController import TripWaypointAPI, TripWaypointListAPI
 from controllers.UserTripController import UserTripAPI, UserTripListAPI
