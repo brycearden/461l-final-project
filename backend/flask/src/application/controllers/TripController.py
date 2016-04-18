@@ -112,7 +112,5 @@ class CreateTripAPI(Resource):
             t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
-        print t
-        print "we are about to return"
         return t
 
