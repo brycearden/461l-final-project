@@ -107,7 +107,5 @@ class UserTripListAPI(Resource):
             if t is not None:
                 data.append(t)
 
-        return {
-            'trips': data,
-        }
+        return {'trips': data}, 200
 
