@@ -13,7 +13,7 @@ isLeader - whether or not the User is the leader of a caravan
 """
 
 
-from TripModel import *
+from TripModel import TripModel
 from BaseModel import *
 
 # Information on how to create the oneToMany Relationship was taken from here:
@@ -23,7 +23,6 @@ from BaseModel import *
 class User(BaseModel):
     email = ndb.StringProperty(default="abc123@yahoo.com")
     trip_ids = ndb.KeyProperty(kind='TripModel', repeated=True)
-    #trips = ndb.StructuredProperty(TripModel, repeated=True)
     distance = ndb.FloatProperty(default=5.0)
     isleader = ndb.BooleanProperty(default=True)
 

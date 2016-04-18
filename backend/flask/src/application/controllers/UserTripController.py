@@ -29,7 +29,7 @@ class UserTripAPI(Resource):
         """
         args = self.parse_args()
         u = User.get_by_id(user_id)
-        t = Trip.get_by_id(args['trip_id'])
+        t = TripModel.get_by_id(args['trip_id'])
 
         # if the waypoint or trips don't exist, abort
         if u is None or t is None:
@@ -46,7 +46,7 @@ class UserTripAPI(Resource):
         """
         args = self.parse_args()
         u = User.get_by_id(user_id)
-        t = Trip.get_by_id(args['trip_id'])
+        t = TripModel.get_by_id(args['trip_id'])
 
         if u is None or t is None:
             abort(404)

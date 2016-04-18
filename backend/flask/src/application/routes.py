@@ -3,41 +3,15 @@ from application import app
 
 from application.views.public.public_warmup import PublicWarmup
 from application.views.public.public_index import PublicIndex
-# from application.views.public.public_say_hello import PublicSayHello
-
-# from application.views.admin.admin_list_examples import AdminListExamples
-# from application.views.admin.admin_list_examples_cached import AdminListExamplesCached
-# from application.views.admin.admin_secret import AdminSecret
-# from application.views.admin.admin_edit_example import AdminEditExample
-# from application.views.admin.admin_delete_example import AdminDeleteExample
-
 from flask.ext.cors import CORS
 from flask_restful import reqparse, abort, Api, Resource
 
 from controllers.AuthController import login, logout
 from controllers.UserController import UserAPI
-from controllers.TripController import TripAPI
-from controllers.WaypointController import WaypointAPI
+from controllers.TripController import TripAPI, CreateTripAPI
+from controllers.WaypointController import WaypointAPI, CreateWaypointAPI
 from controllers.TripWaypointController import TripWaypointAPI, TripWaypointListAPI
 from controllers.UserTripController import UserTripAPI, UserTripListAPI
-# from controllers.TripController import Trip, TripList
-# from controllers.WaypointController import Waypoint, WaypointList
-
-
-# URL dispatch rules
-
-
-# app.add_url_rule('/hello/<username>', 'public_say_hello', view_func=PublicSayHello.as_view('public_say_hello'))
-
-# app.add_url_rule('/examples', 'list_examples', view_func=AdminListExamples.as_view('list_examples'), methods=['GET', 'POST'])
-
-# app.add_url_rule('/examples/cached', 'cached_examples', view_func=AdminListExamplesCached.as_view('cached_examples'))
-
-# app.add_url_rule('/admin_only', 'admin_only', view_func=AdminSecret.as_view('admin_only'))
-
-# app.add_url_rule('/examples/<int:example_id>/edit', 'edit_example', view_func=AdminEditExample.as_view('edit_example'), methods=['GET', 'POST'])
-
-# app.add_url_rule('/examples/<int:example_id>/delete', 'delete_example', view_func=AdminDeleteExample.as_view('delete_example'), methods=['POST'])
 
 # Allow cross domain requests from localhost
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:1234"}})
@@ -59,11 +33,12 @@ api.add_resource(UserTripListAPI, '/api/user/trip/list/<string:user_id>')
 api.add_resource(UserTripAPI, '/api/user/trip/<string:user_id>')
 
 api.add_resource(TripAPI, '/api/trip/<string:id>')
+api.add_resource(CreateTripAPI, '/api/trip/new')
 api.add_resource(TripWaypointListAPI, '/api/trip/waypoint/list/<int:trip_id>')
 api.add_resource(TripWaypointAPI, '/api/trip/waypoint/<int:trip_id>')
 
 api.add_resource(WaypointAPI, '/api/waypoint/<int:id>')
-
+api.add_resource(CreateWaypointAPI, '/api/waypoint/new')
 
 
 ## URL dispatch rules

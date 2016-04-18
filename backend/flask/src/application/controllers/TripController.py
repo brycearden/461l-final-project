@@ -38,33 +38,15 @@ class TripAPI(Resource):
         return parser.parse_args()
 
     @marshal_with(trip_fields)
-    def post(self, id):
-        args = self.parse_args()
-        try:
-            t = Trip()
-
-            # apply command args
-            if args['active'] is not None:
-                t.active = args['active']
-            if args['startloc'] is not None:
-                t.startloc = args['startloc']
-            if args['endloc'] is not None:
-                t.endloc = args['endloc']
-            t.put()
-        except BaseException as e:
-            abort(500, Error="Exception- {0}".format(e.message))
-        return t
-
-    @marshal_with(trip_fields)
     def get(self, id):
-        t = Trip.get_by_id(id)
+        t = TripModel.get_by_id(id)
         if not t:
             abort(404)
         return t
 
     @marshal_with(trip_fields)
     def put(self, id):
-        t = Trip.get_by_id(id)
+        t = TripModel.get_by_id(id)
         if not t:
             abort(404)
         args = self.parse_args()
@@ -81,7 +63,7 @@ class TripAPI(Resource):
 
     def delete(self, id):
         # TODO: update the delete functionality to remove key associations from lists
-        t = Trip.get_by_id(id)
+        t = TripModel.get_by_id(id)
         if not t:
             abort(404)
         t.key.delete()
@@ -89,4 +71,47 @@ class TripAPI(Resource):
             "msg": "object {} has been deleted".format(id),
             "time": str(datetime.datetime.now()),
         }
+
+
+class CreateTripAPI(Resource):
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'active',
+            type=bool,
+            help='whether the current Trip is active or not',
+            location='json',
+        )
+        parser.add_argument(
+            'startloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        parser.add_argument(
+            'endloc',
+            type=float,
+            help='starting GPS coordinate of the trip',
+            location='json'
+        )
+        return parser.parse_args()
+
+    @marshal_with(trip_fields)
+    def post(self):
+        args = self.parse_args()
+        try:
+            t = TripModel()
+
+            # apply command args
+            if args['active'] is not None:
+                t.populate(active=args['active'])
+            if args['startloc'] is not None:
+                t.populate(startloc=args['startloc'])
+            if args['endloc'] is not None:
+                t.populate(endloc=args['endloc'])
+            print t
+            t.put()
+        except BaseException as e:
+            abort(500, Error="Exception- {0}".format(e.message))
+        return t
 

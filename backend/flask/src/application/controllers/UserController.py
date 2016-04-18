@@ -78,8 +78,8 @@ class UserAPI(Resource):
         args = self.parse_args()
 
         #t = TripModel()
-        #t.startLoc = "put trip!" 
-        #t.endLoc = "put trip!" 
+        #t.startLoc = "put trip!"
+        #t.endLoc = "put trip!"
         #key = t.put()
         #print "put <4>"
         #u.trip_ids.append(key)
