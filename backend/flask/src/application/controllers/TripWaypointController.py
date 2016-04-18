@@ -43,7 +43,7 @@ class TripWaypointAPI(Resource):
         """
         args = self.parse_args()
         t = TripModel.get_by_id(trip_id)
-        w = WayPointModel.get_by_id(args['waypoint_id'])
+        w = WaypointModel.get_by_id(args['waypoint_id'])
 
         # if the waypoint or trips don't exist, abort
         if not t or not w:

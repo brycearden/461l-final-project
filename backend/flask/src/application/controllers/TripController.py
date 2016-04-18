@@ -109,9 +109,10 @@ class CreateTripAPI(Resource):
                 t.populate(startloc=args['startloc'])
             if args['endloc'] is not None:
                 t.populate(endloc=args['endloc'])
-            print t
             t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
+        print t
+        print "we are about to return"
         return t
 
