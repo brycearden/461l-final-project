@@ -349,6 +349,17 @@ public class JourneyHome extends FragmentActivity {
         layout.addView(speech);
     }
 
+    @Override
+    public void onBackPressed() {
+        FragmentManager manager = getFragmentManager();
+        if (manager.getBackStackEntryCount() > 0) {
+            manager.popBackStack();
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
 
     /**
      * This class serves as the onClickListener for our navigation drawer
@@ -378,7 +389,7 @@ public class JourneyHome extends FragmentActivity {
                 case 2:
                     //Help
                     //First we need to remove whatever buttons are on the screen
-                    if (JourneyHome.this.findViewById(R.id.start_trip) != null) {
+                    if (JourneyHome.this.findViewById(R.id.join_trip) != null) {
                         //Trip not started yet
                         Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
                         button.setVisibility(View.GONE);
@@ -392,9 +403,8 @@ public class JourneyHome extends FragmentActivity {
                         ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
                         ibutton.setVisibility(View.GONE);
                     }
-
                     FragmentManager manager = getFragmentManager();
-                    manager.beginTransaction().replace(R.id.home_view, helpFragment).commit();
+                    manager.beginTransaction().addToBackStack("home").replace(R.id.home_view, helpFragment).commit();
                     System.out.println("Help selected");
                     break;
                 case 3:
