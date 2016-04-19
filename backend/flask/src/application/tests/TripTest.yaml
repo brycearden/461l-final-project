@@ -47,24 +47,7 @@
     - name: "Deletes the created Trip to the User"
     - url: "/api/user/trip/test1234@school.edu"
     - method: "DELETE"
-    - body: '{"trip_id": $id}'
-    - headers: {Content-Type: application/json}
-- test:
-    - group: "UserTrip-Get"
-    - name: "EXPECTED FAIL because of removing user"
-    - url: "/api/user/test1234@school.edu"
-    - method: "GET"
-    - validators: # operator is applied as: <actual> <operator> <expected>
-      - compare: {jsonpath_mini: "trips",     comparator: "regex",     expected: '.*test123@school.edu.*'}
-- test:
-    - group: "Delete the User"
-    - name: "Delete the user"
-    - url: "/api/user/test1234@school.edu"
-    - method: "DELETE"
-    - headers: {Content-Type: application/json}
-- test:
-    - group: "Trip-Delete"
-    - name: "Delete the Trip"
-    - url: {'template': "/api/trip/$id"}
-    - method: "DELETE"
+    - headers: {'Content-Type': 'application/json'}
+    - body: {template: '{"trip_id": $id}'}
+
 
