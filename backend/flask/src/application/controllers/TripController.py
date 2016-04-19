@@ -25,13 +25,13 @@ class TripAPI(Resource):
         )
         parser.add_argument(
             'startloc',
-            type=float,
+            type=str,
             help='starting GPS coordinate of the trip',
             location='json'
         )
         parser.add_argument(
             'endloc',
-            type=float,
+            type=str,
             help='starting GPS coordinate of the trip',
             location='json'
         )
@@ -84,13 +84,13 @@ class CreateTripAPI(Resource):
         )
         parser.add_argument(
             'startloc',
-            type=float,
+            type=str,
             help='starting GPS coordinate of the trip',
             location='json'
         )
         parser.add_argument(
             'endloc',
-            type=float,
+            type=str,
             help='starting GPS coordinate of the trip',
             location='json'
         )

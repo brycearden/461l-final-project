@@ -25,15 +25,21 @@ class TripModel(BaseModel):
     endloc = ndb.FloatProperty()
     startloc = ndb.FloatProperty()
     waypoint_ids = ndb.KeyProperty(kind='WaypointModel', repeated=True)
+    user_ids = ndb.KeyProperty(kind='User', repeated=True)
+
 
     @property
     def users(self):
         return User.query().filter(User.trips == self.key)
 
     def add_user(self, user):
-        user.trips.append(self.key)
+        self.user_ids.append(user.key)
+        user.trip_ids.append(self.key)
         user.put()
+        self.put()
 
     def remove_user(self, user):
-        user.trips.remove(self.key)
+        self.user_ids.remove(user.key)
+        user.trip_ids.remove(self.key)
         user.put()
+        self.put()
