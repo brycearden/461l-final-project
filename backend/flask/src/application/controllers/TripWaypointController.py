@@ -16,13 +16,13 @@ class TripWaypointAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             'lat',
-            type=float,
+            type=str,
             help='latitute value of the Waypoint',
             location='json',
         )
         parser.add_argument(
             'lon',
-            type=float,
+            type=str,
             help='longitude value of the Waypoint',
             location='json',
         )

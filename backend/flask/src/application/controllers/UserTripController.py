@@ -20,6 +20,7 @@ class UserTripAPI(Resource):
             help='possible Key for a Trip object',
             location='json',
         )
+        return parser.parse_args()
 
     @marshal_with(user_fields)
     def put(self, user_id):
@@ -28,13 +29,15 @@ class UserTripAPI(Resource):
         Does not create a new Trip object
         """
         args = self.parse_args()
+        #print "HERE WE ARE"
+        #print "In put and this trip_id " + str(args)
         u = User.get_by_id(user_id)
         t = TripModel.get_by_id(args['trip_id'])
-
         # if the waypoint or trips don't exist, abort
         if u is None or t is None:
             abort(404)
 
+        print "got to here and this is t: " + str(t) + "this is u: " + str(u)
         t.add_user(u)
         return u
 

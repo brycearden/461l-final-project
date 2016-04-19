@@ -9,11 +9,12 @@ trip_fields = {
     'active': fields.Boolean,
     'added_by': KeyField,
     'created': fields.DateTime,
-    'endloc': fields.Float,
+    'endloc': fields.String,
     'key': KeyField,
     'modified': fields.DateTime,
-    'startloc': fields.Float,
-    'waypoint_ids': fields.List(KeyField)
+    'startloc': fields.String,
+    'waypoint_ids': fields.List(KeyField),
+    'user_ids': fields.List(KeyField)
 }
 
 user_fields = {
@@ -30,8 +31,8 @@ user_fields = {
 waypoint_fields = {
     'created': fields.DateTime,
     'key': KeyField,
-    'lat': fields.Float,
-    'lon': fields.Float,
+    'lat': fields.String,
+    'lon': fields.String,
     'modified': fields.DateTime,
     'trip': KeyField,
 }

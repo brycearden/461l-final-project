@@ -1,0 +1,59 @@
+# Once flask is running, tests can be executed via:
+#   resttest.py http://localhost:8080 Trip.yaml
+#    'active': fields.Boolean,
+#    'added_by': KeyField,
+#    'created': fields.DateTime,
+#    'endloc': fields.String,
+#    'key': KeyField,
+#    'modified': fields.DateTime,
+#    'startloc': fields.String,
+#    'waypoint_ids': fields.List(KeyField)
+
+---
+- config:
+    - testset: "Adding Trip to User Tests"
+
+- test:
+    - group: "User-Post"
+    - name: "Basic post"
+    - url: "/api/user/test1234@school.edu"
+    - method: "POST"
+    - body: '{"distance": 4.657, "isleader": true, "email": "test123@school.edu"}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "Trip-Post"
+    - name: "Post to create Trip"
+    - url: "/api/trip/new"
+    - method: "POST"
+    - body: '{"startloc": "110.21,432", "endloc" : "2003.123, 2341"}'
+    - extract_binds:
+        - 'id': {'jsonpath_mini': 'key'}
+- test:
+    - group: "UserTrip-Put"
+    - name: "Adds the created Trip to the User"
+    - url: "/api/user/trip/test1234@school.edu"
+    - method: "PUT"
+    - body: '{"trip_id": $id}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "UserTrip-Get"
+    - name: "Get TripList from user"
+    - url: "/api/user/test123@school.edu"
+    - method: "GET"
+    - validators: # operator is applied as: <actual> <operator> <expected>
+      - compare: {jsonpath_mini: "trips",     comparator: "eq",     expected: 5.657}
+      - compare: {jsonpath_mini: "isleader",     comparator: "eq",     expected: false}
+- test:
+    - group: "UserTrip-Delete"
+    - name: "Deletes the created Trip to the User"
+    - url: "/api/user/trip/test1234@school.edu"
+    - method: "DELETE"
+    - body: '{"trip_id": $id}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "User-Get"
+    - name: "Get user with deleted trip"
+    - url: "/api/user/test123@school.edu"
+    - method: "GET"
+    - expected_status: [404]
+    - headers: {Content-Type: application/json}
