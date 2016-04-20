@@ -1,0 +1,48 @@
+# Once flask is running, tests can be executed via:
+#   resttest.py http://localhost:8080 Waypoint.yaml
+
+---
+- config:
+    - testset: "Waypoint Basic Tests"
+
+- test:
+    - group: "Waypoint-Success"
+    - name: "Basic post"
+    - url: "/api/waypoint/new"
+    - method: "POST"
+    - body: '{"lat": "4.657", "lon": "7464.304"}'
+    - headers: {Content-Type: application/json}
+    - extract_binds:
+        - 'id': {'jsonpath_mini': 'key'}
+- test:
+    - group: "Waypoint-Failure"
+    - name: "Tries to post using the wrong endpoint"
+    - url: "/api/waypoint/"
+    - method: "POST"
+    - body: '{"lat": "4.657", "lon": "5.678"}'
+    - expected_status: [404]
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "Waypoint-Put"
+    - name: "Put to modify waypoint"
+    - url: {template: "/api/waypoint/$id"}
+    - method: "PUT"
+    - body: '{"lat": "6.879", "lon", "72.456"}'
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "Waypoint-Get"
+    - name: "Get modified waypoint"
+    - url: {template: "/api/waypoint/$id"}
+    - method: "GET"
+- test:
+    - group: "Waypoint-Delete"
+    - name: "Put to modify waypoint"
+    - url: {template: "/api/waypoint/$id"}
+    - method: "DELETE"
+- test:
+    - group: "EXPECTED GET FAILURE"
+    - name: "Get a waypoint thats been deleted"
+    - url: {template: "/api/waypoint/$id"}
+    - method: "GET"
+    - expected_status: [404]
+
