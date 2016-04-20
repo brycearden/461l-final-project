@@ -17,6 +17,7 @@ def ignored(*exceptions):
 DEV_APPSERVER = "http://localhost:8080"
 
 for filename in glob.glob("*.yaml"):
+    print "STARTING TESTS FOR {}".format(filename)
     with ignored(CalledProcessError):
         check_call(["pyresttest", DEV_APPSERVER, filename])
 
