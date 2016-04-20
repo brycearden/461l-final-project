@@ -15,19 +15,11 @@
     - extract_binds:
         - 'id': {'jsonpath_mini': 'key'}
 - test:
-    - group: "Waypoint-Failure"
-    - name: "Tries to post using the wrong endpoint"
-    - url: "/api/waypoint/"
-    - method: "POST"
-    - body: '{"lat": "4.657", "lon": "5.678"}'
-    - expected_status: [404]
-    - headers: {Content-Type: application/json}
-- test:
     - group: "Waypoint-Put"
     - name: "Put to modify waypoint"
     - url: {template: "/api/waypoint/$id"}
     - method: "PUT"
-    - body: '{"lat": "6.879", "lon", "72.456"}'
+    - body: '{"lat": "6.879", "lon": "72.456"}'
     - headers: {Content-Type: application/json}
 - test:
     - group: "Waypoint-Get"
@@ -45,4 +37,12 @@
     - url: {template: "/api/waypoint/$id"}
     - method: "GET"
     - expected_status: [404]
+- test:
+    - group: "Waypoint-Failure"
+    - name: "Tries to post using the wrong endpoint"
+    - url: "/api/waypoint/"
+    - method: "POST"
+    - body: '{"lat": "4.657", "lon": "5.678"}'
+    - expected_status: [404]
+    - headers: {Content-Type: application/json}
 
