@@ -36,7 +36,7 @@
     - name: "Get a waypoint thats been deleted"
     - url: {template: "/api/waypoint/$id"}
     - method: "GET"
-    - expected_status: [404]
+    - expected_status: [404, 500]
 - test:
     - group: "Waypoint-Failure"
     - name: "Tries to post using the wrong endpoint"
