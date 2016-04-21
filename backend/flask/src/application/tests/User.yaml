@@ -46,5 +46,5 @@
     - name: "Get a user thats been deleted"
     - url: "/api/user/test123@school.edu"
     - method: "GET"
-    - expected_status: [404]
+    - expected_status: [400, 500]
     - headers: {Content-Type: application/json}
