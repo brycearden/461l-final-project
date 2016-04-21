@@ -67,6 +67,12 @@ public class NavDrawerSupport {
                 R.layout.drawer_list_item, navItems));
     }
 
+    public void toggleDrawer() {
+        //The only time button can be pressed is when drawer is closed, so this will simply open the drawer
+        mDrawerLayout.openDrawer(mDrawerList);
+    }
+
+    //Google Sign in functionality
     public boolean signIn(Intent data, Context context) {
         GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
         if (result.isSuccess()) {
