@@ -60,7 +60,9 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     //Place IDs
     private String startLocationId;
+    private LatLng startLocationLatLng;
     private String endLocationId;
+    private LatLng endLocationLatLng;
 
     //Fragments
     private MapFragment mapFragment;
@@ -197,6 +199,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         else {
             //At least 1 waypoint to worry about
         }
+
+        //Finally, let's add a marker for start and end locations (removing current loc marker)
         return steps;
     }
 
@@ -295,25 +299,27 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         String endData = data.getExtras().getString("EndLocLatLng");
 
         //Start with StartLoc
-        LatLng startLoc = null;
-        if (startData.equals("Current")) startLoc = currentLocation;
+        if (startData.equals("Current")) startLocationLatLng = currentLocation;
         else {
             String latlng[] = startData.split(",");
             latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
             latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
-            startLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+            startLocationLatLng = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
         }
-        System.out.println("Start: " + startLoc + ", " + startData);
 
         //EndLoc
         String latlng[] = endData.split(",");
         latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
         latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
-        LatLng endLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
-        System.out.println("End: " + endData + ", " + endLoc);
+        endLocationLatLng = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+
+        //Add markers for start/end
+        if (marker != null) marker.remove();
+        mMap.addMarker(new MarkerOptions().position(startLocationLatLng).title("Start Location"));
+        mMap.addMarker(new MarkerOptions().position(endLocationLatLng).title("End Location"));
 
         //Now adjust camera zoom
-        LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLoc).include(endLoc);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLocationLatLng).include(endLocationLatLng);
         for (int i = 0; i < route.size(); i++) {
             builder.include(route.get(i));
         }
@@ -350,7 +356,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         dirLayout.addView(text);
 
         ImageView image = new ImageView(journeyHome);
-        image.setImageResource(R.drawable.ic_directions_black_24dp);
+        image.setImageResource(R.drawable.ic_directions_black_48dp);
         image.setPadding(50, 0, 0, 0);
         directionParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         directionParams.addRule(RelativeLayout.CENTER_VERTICAL);

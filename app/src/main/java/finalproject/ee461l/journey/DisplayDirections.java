@@ -1,9 +1,11 @@
 package finalproject.ee461l.journey;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,9 +34,17 @@ public class DisplayDirections extends AppCompatActivity {
             String step = directions.get(i);
             TextView view = new TextView(this);
             view.setText(Html.fromHtml(step));
+            view.setTextSize(2, 18);
             view.setPadding(50, 5, 0, 5);
             view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             layout.addView(view);
+
+            //Now we will add a bottom border
+            View border = new View(this);
+            border.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1));
+            border.setBackgroundColor(Color.BLACK);
+            border.setPadding(50, 5, 0, 5);
+            layout.addView(border);
         }
     }
 }
