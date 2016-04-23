@@ -11,60 +11,46 @@
 
 ---
 - config:
-    - testset: "Adding Trip to User Tests"
+    - testset: "Trip Basic Tests"
 
 - test:
-    - group: "User-Post"
+    - group: "Trip-Success"
     - name: "Basic post"
-    - url: "/api/user/test1234@school.edu"
-    - method: "POST"
-    - body: '{"distance": 4.657, "isleader": true, "email": "test123@school.edu"}'
-    - headers: {Content-Type: application/json}
-- test:
-    - group: "Trip-Post"
-    - name: "Post to create Trip"
     - url: "/api/trip/new"
     - method: "POST"
-    - body: '{"startloc": "110.21,432", "endloc" : "2003.123, 2341"}'
+    - body: '{"active": true, "startloc": "7464.304", "endloc": "1232.434"}'
+    - headers: {Content-Type: application/json}
     - extract_binds:
         - 'id': {'jsonpath_mini': 'key'}
 - test:
-    - group: "UserTrip-Put"
-    - name: "Adds the created Trip to the User"
-    - url: "/api/user/trip/test1234@school.edu"
+    - group: "Trip-Get"
+    - name: "Get modified trip"
+    - url: {template: "/api/trip/$id"}
+    - method: "GET"
+- test:
+    - group: "Trip-Put"
+    - name: "Put to modify trip"
+    - url: {template: "/api/trip/$id"}
     - method: "PUT"
-    - headers: {'Content-Type': 'application/json'}
-    - body: {template: '{"trip_id": "$id"}'}
-- test:
-    - group: "UserTrip-Get"
-    - name: "Get TripList from user"
-    - url: "/api/user/trip/list/test1234@school.edu"
-    - method: "GET"
-    - validators: # operator is applied as: <actual> <operator> <expected>
-      - compare: {jsonpath_mini: "trips",     comparator: "regex",     expected: '.*test1234@school.edu.*'}
-- test:
-    - group: "UserTrip-Delete"
-    - name: "Deletes the created Trip to the User"
-    - url: "/api/user/trip/test1234@school.edu"
-    - method: "DELETE"
-    - body: '{"trip_id": $id}'
-    - headers: {Content-Type: application/json}
-- test:
-    - group: "UserTrip-Get"
-    - name: "EXPECTED FAIL because of removing user"
-    - url: "/api/user/test1234@school.edu"
-    - method: "GET"
-    - validators: # operator is applied as: <actual> <operator> <expected>
-      - compare: {jsonpath_mini: "trips",     comparator: "regex",     expected: '.*test123@school.edu.*'}
-- test:
-    - group: "Delete the User"
-    - name: "Delete the user"
-    - url: "/api/user/test1234@school.edu"
-    - method: "DELETE"
+    - body: '{"active": false, "startloc": "234.33", "endloc": "44.434"}'
     - headers: {Content-Type: application/json}
 - test:
     - group: "Trip-Delete"
-    - name: "Delete the Trip"
-    - url: {'template': "/api/trip/$id"}
+    - name: "Put to modify trip"
+    - url: {template: "/api/trip/$id"}
     - method: "DELETE"
+- test:
+    - group: "EXPECTED GET FAILURE"
+    - name: "Get a trip thats been deleted"
+    - url: {template: "/api/trip/$id"}
+    - method: "GET"
+    - expected_status: [404, 500]
+- test:
+    - group: "Trip-Failure"
+    - name: "Tries to post using the wrong endpoint"
+    - url: "/api/trip/"
+    - method: "POST"
+    - body: '{"active": true, "startloc": "12.33", "endloc": "49.434"}'
+    - expected_status: [404]
+    - headers: {Content-Type: application/json}
 

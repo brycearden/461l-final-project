@@ -32,7 +32,7 @@ api.add_resource(UserAPI, '/api/user/<string:id>')
 api.add_resource(UserTripListAPI, '/api/user/trip/list/<string:user_id>')
 api.add_resource(UserTripAPI, '/api/user/trip/<string:user_id>')
 
-api.add_resource(TripAPI, '/api/trip/<string:id>')
+api.add_resource(TripAPI, '/api/trip/<int:id>')
 api.add_resource(CreateTripAPI, '/api/trip/new')
 api.add_resource(TripWaypointListAPI, '/api/trip/waypoint/list/<int:trip_id>')
 api.add_resource(TripWaypointAPI, '/api/trip/waypoint/<int:trip_id>')
