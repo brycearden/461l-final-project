@@ -22,8 +22,8 @@ class TripModel(BaseModel):
     added_by = ndb.UserProperty()
     active = ndb.BooleanProperty(default=False)
     added_by = ndb.UserProperty()
-    endloc = ndb.FloatProperty()
-    startloc = ndb.FloatProperty()
+    endloc = ndb.StringProperty()
+    startloc = ndb.StringProperty()
     waypoint_ids = ndb.KeyProperty(kind='WaypointModel', repeated=True)
     user_ids = ndb.KeyProperty(kind='User', repeated=True)
 

@@ -98,19 +98,28 @@ class CreateTripAPI(Resource):
 
     @marshal_with(trip_fields)
     def post(self):
+        print "HELLO HELLO HELLO ELLO"
+        print "we are trying to create a trip!"
         args = self.parse_args()
+        print args
         try:
             t = TripModel()
+            print "created a trip object"
 
             # apply command args
-            if args['active'] is not None:
-                t.populate(active=args['active'])
-            if args['startloc'] is not None:
-                t.populate(startloc=args['startloc'])
-            if args['endloc'] is not None:
-                t.populate(endloc=args['endloc'])
+            if args.active is not None:
+                t.populate(active=args.active)
+            print "populated active"
+            # if args.startloc is not None:
+            #     t.populate(startloc=args.startloc)
+            # print "populated startloc"
+            # if args.endloc is not None:
+            #     t.populate(endloc=args.endloc)
+            print "populated endloc"
+            print "populated"
             t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
+            print "we are about to return"
         return t
 
