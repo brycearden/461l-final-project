@@ -73,6 +73,7 @@ public class JourneyHome extends FragmentActivity {
     public static final int VOICE_TIME = 4;
     public static final int VOICE_DISTANCE = 5;
     public static final int VOICE_CALC = 4;
+    public static final int ADD_WAYPOINT = 6;
 
     //Permissions Constants
     public static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
@@ -83,6 +84,10 @@ public class JourneyHome extends FragmentActivity {
 
     //Intent Constants
     public static final String CURRENT_LOCATION = "finalproject.ee461l.journey.CURRENT_LOCATION";
+    public static final String START_LOCATION = "finalproject.ee461l.journey.START_LOCATION";
+    public static final String END_LOCATION = "finalproject.ee461l.journey.END_LOCATION";
+    public static final String START_LATLNG = "finalproject.ee461l.journey.START_LATLONG";
+    public static final String END_LATLNG = "finalproject.ee461l.journey.END_LATLNG";
 
     //Waypoint adding
     protected String stopType;
@@ -216,8 +221,21 @@ public class JourneyHome extends FragmentActivity {
     }
 
     public void stopHandler(View view) {
-        //Do nothing right now
-        System.out.println("Called for a stop");
+        Intent waypointIntent = new Intent(this, Waypoint.class);
+        //If we decide to pass values from this screen, we do that here
+        waypointIntent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
+
+        String startLocId = map.getStartLocID();
+        String endLocId = map.getEndLocID();
+        String endLatLong = map.getEndLatLng();
+        String startLatLong = map.getStartLatLng();
+
+        waypointIntent.putExtra(START_LOCATION, startLocId);
+        waypointIntent.putExtra(END_LOCATION, endLocId);
+        waypointIntent.putExtra(START_LATLNG, startLatLong);
+        waypointIntent.putExtra(END_LATLNG, endLatLong);
+
+        startActivityForResult(waypointIntent, JourneyHome.ADD_WAYPOINT);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -256,6 +274,13 @@ public class JourneyHome extends FragmentActivity {
                 distanceFromRoute = voice.voiceStopDistance(data);
             }
         }
+        else if (requestCode == JourneyHome.ADD_WAYPOINT) {
+            if (resultCode == RESULT_OK) {
+                System.out.println(data.getStringExtra("JSONDirections"));
+                map.mMap.clear();
+                journeyStartWaypointTrip(data);
+            }
+        }
         else if (requestCode == GOOGLE_ACCT_SIGNIN) {
             isSignedIn = nav.signIn(data, this);
         }
@@ -264,6 +289,7 @@ public class JourneyHome extends FragmentActivity {
     public void journeyStartTrip(Intent data) {
         //We will start by changing the buttons on screen
         adjustView();
+        map.setIds(data);
 
         //Now we will deal with the route directions
         JSONObject directions = null;
@@ -301,6 +327,54 @@ public class JourneyHome extends FragmentActivity {
         map.adjustMapZoom(data);
     }
 
+    public void journeyStartWaypointTrip(Intent data) {
+        //We will start by changing the buttons on screen
+        adjustView();
+        map.setIds(data);
+
+        int numWaypoints = 1;
+
+        //Now we will deal with the route directions
+        JSONObject directions = null;
+        try {
+            directions = new JSONObject(data.getStringExtra("JSONDirections"));
+            System.out.println(directions);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String valid = null;
+        try {
+            valid = directions.getString("status");
+            if (!valid.equals("OK")) return;
+
+            //multiple steps for waypoints
+            JSONArray steps1 = map.getRouteSteps(directions, true);
+            JSONArray steps2 = map.getRouteSteps(directions, false);
+
+            //Need to convert polyline points into legitimate points
+            //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
+            List<LatLng> leg1 = map.convertPolyline(steps1);
+            List<LatLng> leg2 = map.convertPolyline(steps2);
+
+            //Next we need to create a PolylineOptions object and give it all of the points in the step
+            PolylineOptions options = new PolylineOptions();
+            for (LatLng coord : leg1) {
+                options.add(coord);
+            }
+            for (LatLng coord : leg2) {
+                options.add(coord);
+            }
+
+            //Finally, we add the polyline to the map
+            map.mMap.addPolyline(options);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //Finally we will adjust the zoom to the appropriate level
+        map.adjustMapZoom(data);
+    }
 
 
     public void voiceComm(String helpText, int resultId) {
@@ -320,6 +394,7 @@ public class JourneyHome extends FragmentActivity {
 
         //Will simply change the text and activity of the start button to "Add Stop"
         startButton.setText("Add Stop to Route");
+
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

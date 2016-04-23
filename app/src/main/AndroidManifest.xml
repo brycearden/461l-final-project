@@ -83,6 +83,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="finalproject.ee461l.journey.JourneyHome" />
         </activity>
+        <activity
+            android:name=".Waypoint"
+            android:label="@string/title_activity_add_waypoint"
+            android:parentActivityName=".JourneyHome"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.JourneyHome" />
+        </activity>
     </application>
 
 </manifest>

@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.CheckBox;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -26,15 +25,20 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class StartTrip extends AppCompatActivity {
+/**
+ * Created by gordiewhite on 4/18/16.
+ */
+public class Waypoint extends AppCompatActivity {
 
-    private boolean caravan;
-    protected Place startLoc;
-    protected Place endLoc;
+    private String startLocId;
+    private String endLocId;
+    private String endLatLong;
+    private String startLatLong;
+    private Place waypoint;
 
     //For current location
     private LocationSupport loc;
-    private PlaceAutocompleteFragment startFragment;
+    private PlaceAutocompleteFragment waypointFragment;
     private boolean usingCurrentLoc;
     private String currentLocation;
     private String currentLocPlaceId;
@@ -42,7 +46,7 @@ public class StartTrip extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_start_trip);
+        setContentView(R.layout.activity_add_waypoint);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -58,107 +62,74 @@ public class StartTrip extends AppCompatActivity {
         loc = new LocationSupport();
         loc.getCurrentLocationInfo(currentLocation);
 
-        //Google Places
-        //Should just be able to use the client from JourneyHome?
-        /*
-        GoogleApiClient mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(this, null)
-                .build();
-                */
+        //get start and end location id for route
+        startLocId = intent.getExtras().getString(JourneyHome.START_LOCATION);
+        endLocId = intent.getExtras().getString(JourneyHome.END_LOCATION);
+        startLatLong = intent.getExtras().getString(JourneyHome.START_LATLNG);
+        endLatLong = intent.getExtras().getString(JourneyHome.END_LATLNG);
 
         //Let's set up the Places Listener
-        startFragment = (PlaceAutocompleteFragment)
+        waypointFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.new_waypoint);
-        PlaceAutocompleteFragment finishFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.finish_place);
 
-        startFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        waypointFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 System.out.println("Place: " + place.getName());
-                startLoc = place;
+                waypoint = place;
                 usingCurrentLoc = false;
             }
 
             @Override
+
             public void onError(Status status) {
                 // TODO: Handle the error.
                 System.out.println("An error occurred: " + status);
             }
         });
 
-        finishFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                System.out.println("Place: " + place.getName());
-                endLoc = place;
-            }
+        waypointFragment.setHint("Select Waypoint");
 
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                System.out.println("An error occurred: " + status);
-            }
-        });
-
-        startFragment.setHint("Select Starting Destination");
-        finishFragment.setHint("Select Final Destination");
-
-        caravan = false;
         usingCurrentLoc = false;
     }
 
-    public void caravanCheck(View view) {
-        caravan = ((CheckBox) view).isChecked();
+    public void addWaypoint(View view) {
+        System.out.println("made it");
+        if(startLocId == null || endLocId == null || waypoint == null){return;}
+        String waypointID = waypoint.getId();
+        new TripRequest().execute(startLocId, endLocId, waypointID);
     }
-
-    public void beginTrip(View view) {
-        if ((usingCurrentLoc && loc.getId() == null) || (!usingCurrentLoc && startLoc == null) || endLoc == null) return;
-        new TripRequest().execute(startLoc, endLoc);
-    }
-
-    public void useCurrentLoc(View view) {
-        //User wants current location to be used
-        startFragment.setText("Current Location");
-        usingCurrentLoc = true;
-    }
-
-    private class TripRequest extends AsyncTask<Place, Void, String> {
+    private class TripRequest extends AsyncTask<String, Void, String> {
         private String startId;
         private String endId;
+        private String waypointId;
 
-        protected String doInBackground(Place... places) {
-            Place startPlace = null;
-            Place endPlace = null;
+        Place startLoc;
+        Place endLoc;
+
+        protected String doInBackground(String... strings) {
             String result = "";
 
             int currentPlace = 0;
-            for (int i = 0; i < 2; currentPlace++, i++) {
+            for (int i = 0; i < 3; currentPlace++, i++) {
                 if (currentPlace == 0) {
                     //StartPlace
-                    startPlace = places[i];
-                } else {
+                    startId = strings[i];
+                } else if (currentPlace == 1){
                     //EndPlace
-                    endPlace = places[i];
+                    endId = strings[i];
+                } else {
+                    waypointId = strings[i];
                 }
             }
+            System.out.println(strings[2]);
+            waypointId = strings[2];
+            System.out.println(waypointId);
             try {
                 URL url = null;
-                if (usingCurrentLoc) {
-                    url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + loc.getId() +
-                            "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
-                    startId = loc.getId();
-                } else {
-                    url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startPlace.getId() +
-                            "&destination=place_id:" + endPlace.getId() + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
-                    startId = startPlace.getId();
-                }
-                endId = endPlace.getId();
+                url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startId +
+                        "&destination=place_id:" + endId + "&waypoints=place_id:" + waypointId + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
                 HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
@@ -181,12 +152,13 @@ public class StartTrip extends AppCompatActivity {
 
             Intent intent = new Intent();
             intent.putExtra("JSONDirections", result);
-            if (usingCurrentLoc) intent.putExtra("StartLocLatLng", "Current");
-            else intent.putExtra("StartLocLatLng", startLoc.getLatLng().toString());
-            intent.putExtra("EndLocLatLng", endLoc.getLatLng().toString());
+            intent.putExtra("StartLocLatLng", startLatLong);
+            intent.putExtra("EndLocLatLng", endLatLong);
+
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();

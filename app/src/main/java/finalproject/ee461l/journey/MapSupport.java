@@ -54,6 +54,14 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     private ArrayList<LatLng> route;
 
+    private String startLocationId;
+    private String endLocationId;
+
+    private String startLatLng;
+    private String endLatLng;
+
+    protected static int numLegs = 0;
+
     //Fragments
     private MapFragment mapFragment;
 
@@ -66,6 +74,9 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         setupMap(manager, mapFragment, home);
 
         marker = null;
+
+        startLocationId = null;
+        endLocationId = null;
 
     }
 
@@ -161,6 +172,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     public JSONArray getRouteSteps(JSONObject directions, boolean isFirstTime) {
         JSONArray steps = null;
         if (isFirstTime) {
+            numLegs = 0;
             //No waypoints
             try {
                 JSONArray routes = directions.getJSONArray("routes");
@@ -178,7 +190,22 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             }
         }
         else {
+            numLegs += 1;
             //At least 1 waypoint to worry about
+            try {
+                JSONArray routes = directions.getJSONArray("routes");
+
+                //Need to get the legs[]
+                JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
+                JSONArray legs = firstRoute.getJSONArray("legs");
+
+                //Need to get the steps[] now
+                JSONObject leg = legs.optJSONObject(numLegs); //Once we add waypoints there will be more legs
+                steps = leg.getJSONArray("steps");
+            }
+            catch (JSONException e) {
+                //JSON Error
+            }
         }
         return steps;
     }
@@ -262,6 +289,24 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
     }
+
+    public void setIds(Intent data) {
+        startLocationId = data.getExtras().getString("StartLocationId");
+        endLocationId = data.getExtras().getString("EndLocationId");
+        startLatLng = data.getExtras().getString("StartLocLatLng");
+        endLatLng =data.getExtras().getString("EndLocLatLng");
+    }
+
+    public String getStartLocID(){
+        return startLocationId;
+    }
+
+    public String getEndLocID() { return endLocationId; }
+
+    public String getStartLatLng() { return startLatLng; }
+
+    public String getEndLatLng() { return endLatLng; }
+
 
     public void adjustMapZoom(Intent data) {
         //First, let's get the latitude and longitude of the Start and End locations
