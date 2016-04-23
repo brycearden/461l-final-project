@@ -6,7 +6,9 @@ import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
@@ -23,9 +25,15 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -100,9 +108,6 @@ public class JourneyHome extends FragmentActivity {
     GoogleApiClient client;
 
 
-    //only reason this is in
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +127,8 @@ public class JourneyHome extends FragmentActivity {
 
         map = new MapSupport(this, manager, client);
         voice = new VoiceSupport(this);
+        // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(map)
                 .addOnConnectionFailedListener(map)
@@ -129,7 +136,7 @@ public class JourneyHome extends FragmentActivity {
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, options)
-                .build();
+                .addApi(AppIndex.API).build();
 
         map.setClient(client);
         //Navigation Drawer
@@ -152,12 +159,38 @@ public class JourneyHome extends FragmentActivity {
     protected void onStart() {
         client.connect();
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "JourneyHome Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://finalproject.ee461l.journey/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     @Override
     protected void onStop() {
         client.disconnect();
         super.onStop();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "JourneyHome Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://finalproject.ee461l.journey/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
     }
 
     @Override
@@ -202,6 +235,21 @@ public class JourneyHome extends FragmentActivity {
      * @param view
      */
     public void startHandler(View view) {
+        if (!isSignedIn) {
+            //We do not want to allow trip creation unless the user is signed in
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Login Required")
+                    .setMessage("You must sign in with your Google Account before creating a Trip. "
+                            + "Log in from the Navigation Drawer.")
+                    .setNeutralButton("Okay", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("User clicked okay");
+                        }
+                    })
+                    .show();
+            return;
+        }
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
         intent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
@@ -215,6 +263,21 @@ public class JourneyHome extends FragmentActivity {
      * @param view
      */
     public void joinHandler(View view) {
+        if (!isSignedIn) {
+            //We do not want to allow trip creation unless the user is signed in
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Login Required")
+                    .setMessage("You must sign in with your Google Account before joining a Trip. "
+                            + "Log in from the Navigation Drawer.")
+                    .setNeutralButton("Okay", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("User clicked okay");
+                        }
+                    })
+                    .show();
+            return;
+        }
         Intent intent = new Intent(this, JoinTrip.class);
         //If we decide to pass values from this screen, we do that here
         startActivity(intent);
@@ -236,6 +299,10 @@ public class JourneyHome extends FragmentActivity {
         waypointIntent.putExtra(END_LATLNG, endLatLong);
 
         startActivityForResult(waypointIntent, JourneyHome.ADD_WAYPOINT);
+    }
+
+    public void toggleDrawer(View view) {
+        nav.toggleDrawer();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -295,7 +362,6 @@ public class JourneyHome extends FragmentActivity {
         JSONObject directions = null;
         try {
             directions = new JSONObject(data.getStringExtra("JSONDirections"));
-            System.out.println(directions);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -376,7 +442,6 @@ public class JourneyHome extends FragmentActivity {
         map.adjustMapZoom(data);
     }
 
-
     public void voiceComm(String helpText, int resultId) {
         //Start voice recognition activity
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -413,6 +478,9 @@ public class JourneyHome extends FragmentActivity {
             }
         });
 
+        //Need to create a Directions bar at the bottom
+        RelativeLayout dirLayout = map.addDirectionsToLayout();
+
         //Now we need to deal with Layout parameters
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -421,6 +489,18 @@ public class JourneyHome extends FragmentActivity {
         speech.getBackground().setAlpha(0);
         speech.setId(R.id.speech_button);
         layout.addView(speech);
+        layout.addView(dirLayout);
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager manager = getFragmentManager();
+        if (manager.getBackStackEntryCount() > 0) {
+            manager.popBackStack();
+        }
+        else {
+            super.onBackPressed();
+        }
     }
 
 
@@ -452,7 +532,7 @@ public class JourneyHome extends FragmentActivity {
                 case 2:
                     //Help
                     //First we need to remove whatever buttons are on the screen
-                    if (JourneyHome.this.findViewById(R.id.start_trip) != null) {
+                    if (JourneyHome.this.findViewById(R.id.join_trip) != null) {
                         //Trip not started yet
                         Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
                         button.setVisibility(View.GONE);
@@ -466,9 +546,8 @@ public class JourneyHome extends FragmentActivity {
                         ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
                         ibutton.setVisibility(View.GONE);
                     }
-
                     FragmentManager manager = getFragmentManager();
-                    manager.beginTransaction().replace(R.id.home_view, helpFragment).commit();
+                    manager.beginTransaction().addToBackStack("home").replace(R.id.home_view, helpFragment).commit();
                     System.out.println("Help selected");
                     break;
                 case 3:

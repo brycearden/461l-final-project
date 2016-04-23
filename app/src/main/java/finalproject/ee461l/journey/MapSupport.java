@@ -2,11 +2,17 @@ package finalproject.ee461l.journey;
 
 import android.*;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -44,8 +50,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     //Google Maps
     protected LocationRequest mLocationRequest;
-    //To be used in MapSupport
-    //kevin, if these are all used in MapSupport, make a class for them
     protected GoogleMap mMap;
     protected boolean firstUpdate;
     protected LatLng currentLocation;
@@ -54,16 +58,26 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     private ArrayList<LatLng> route;
 
-    private String startLocationId;
-    private String endLocationId;
+
 
     private String startLatLng;
     private String endLatLng;
 
     protected static int numLegs = 0;
+    //Place IDs
+    private String startLocationId;
+    private LatLng startLocationLatLng;
+    private String endLocationId;
+    private LatLng endLocationLatLng;
 
     //Fragments
     private MapFragment mapFragment;
+
+    //Text instructions for the route
+    private ArrayList<String> directions;
+
+    //Constants
+    public static final String DIRECTIONS_ARRAY = "finalproject.ee461l.journey.DIRECTIONS_ARRAY";
 
     public MapSupport(JourneyHome home, FragmentManager manager, GoogleApiClient client){
         journeyHome = home;
@@ -74,10 +88,13 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         setupMap(manager, mapFragment, home);
 
         marker = null;
+        startLocationId = null;
+        endLocationId = null;
 
         startLocationId = null;
         endLocationId = null;
 
+        directions = new ArrayList<String>();
     }
 
     public void setClient(GoogleApiClient client){
@@ -207,6 +224,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
                 //JSON Error
             }
         }
+
+        //Finally, let's add a marker for start and end locations (removing current loc marker)
         return steps;
     }
 
@@ -216,12 +235,17 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
+            String instruction = "";
             try {
                 points = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
+                //We will also get the HTML instructions for each step
+                instruction = steps.getJSONObject(i).getString("html_instructions");
             }
             catch (JSONException e) {
                 //JSON Error
             }
+            //Let's first store the instruction
+            directions.add(instruction);
             double latitude = 0;
             double longitude = 0; //Out here b/c path uses relative lat/lng changes
             int index = 0;
@@ -243,7 +267,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             }
         }
         route = leg;
-
         return leg;
     }
 
@@ -307,32 +330,33 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public String getEndLatLng() { return endLatLng; }
 
-
     public void adjustMapZoom(Intent data) {
         //First, let's get the latitude and longitude of the Start and End locations
         String startData = data.getExtras().getString("StartLocLatLng");
         String endData = data.getExtras().getString("EndLocLatLng");
 
         //Start with StartLoc
-        LatLng startLoc = null;
-        if (startData.equals("Current")) startLoc = currentLocation;
+        if (startData.equals("Current")) startLocationLatLng = currentLocation;
         else {
             String latlng[] = startData.split(",");
             latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
             latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
-            startLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+            startLocationLatLng = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
         }
-        System.out.println("Start: " + startLoc + ", " + startData);
 
         //EndLoc
         String latlng[] = endData.split(",");
         latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
         latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
-        LatLng endLoc = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
-        System.out.println("End: " + endData + ", " + endLoc);
+        endLocationLatLng = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
+
+        //Add markers for start/end
+        if (marker != null) marker.remove();
+        mMap.addMarker(new MarkerOptions().position(startLocationLatLng).title("Start Location"));
+        mMap.addMarker(new MarkerOptions().position(endLocationLatLng).title("End Location"));
 
         //Now adjust camera zoom
-        LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLoc).include(endLoc);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLocationLatLng).include(endLocationLatLng);
         for (int i = 0; i < route.size(); i++) {
             builder.include(route.get(i));
         }
@@ -340,8 +364,49 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50), 2000, null);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 225), 2000, null);
             }
         });
+    }
+
+    public RelativeLayout addDirectionsToLayout() {
+        RelativeLayout dirLayout = new RelativeLayout(journeyHome);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        dirLayout.setLayoutParams(params);
+        dirLayout.setBackgroundColor(Color.WHITE);
+        dirLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewDirections(v);
+            }
+        });
+
+        TextView text = new TextView(journeyHome);
+        text.setText("Route Directions");
+        text.setTextColor(Color.argb(200, 255, 0, 0));
+        text.setTextSize(2, 18); //18sp
+        text.setPadding(0, 50, 0, 50);
+        RelativeLayout.LayoutParams directionParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        directionParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+        text.setLayoutParams(directionParams);
+        dirLayout.addView(text);
+
+        ImageView image = new ImageView(journeyHome);
+        image.setImageResource(R.drawable.ic_directions_black_48dp);
+        image.setPadding(50, 0, 0, 0);
+        directionParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        directionParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        image.setLayoutParams(directionParams);
+        dirLayout.addView(image);
+
+        return dirLayout;
+    }
+
+    private void viewDirections(View view) {
+        //Will open a new activity that will show the user directions
+        Intent intent = new Intent(journeyHome, DisplayDirections.class);
+        intent.putStringArrayListExtra(DIRECTIONS_ARRAY, directions);
+        journeyHome.startActivity(intent);
     }
 }

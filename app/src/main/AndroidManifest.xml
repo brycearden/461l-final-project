@@ -92,6 +92,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="finalproject.ee461l.journey.JourneyHome" />
         </activity>
+        <activity
+            android:name=".DisplayDirections"
+            android:label="Route Directions"
+            android:parentActivityName=".JourneyHome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.JourneyHome"/>
+        </activity>
     </application>
 
 </manifest>
