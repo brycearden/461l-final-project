@@ -235,7 +235,7 @@ public class JourneyHome extends FragmentActivity {
      * @param view
      */
     public void startHandler(View view) {
-        if (!isSignedIn) {
+        /*if (!isSignedIn) {
             //We do not want to allow trip creation unless the user is signed in
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Login Required")
@@ -249,7 +249,7 @@ public class JourneyHome extends FragmentActivity {
                     })
                     .show();
             return;
-        }
+        }*/
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
         intent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
