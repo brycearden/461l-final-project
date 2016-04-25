@@ -56,26 +56,14 @@ class WaypointAPI(Resource):
     def delete(self, id):
         # TODO: update the delete functionality to remove key associations from lists
         w = WaypointModel.get_by_id(id)
-        ret = {
-            "msg": "object {} has been deleted".format(id),
-            "time": str(datetime.datetime.now()),
-        }
-
         if not w:
             abort(404)
 
-        if not w.trip:
-            w.key.delete()
-            return ret
-        # after we get the waypoint, make sure the Trip Model that contains us
-        # has been updated
-        t = Trip.get(w.trip)
-        if not t:
-            abort(404)
-        # remove our key from an associated trip, then delete obj
-        t.waypoints.remove(w.key)
         w.key.delete()
-        return ret
+        return {
+            "msg": "object {} has been deleted".format(id),
+            "time": str(datetime.datetime.now()),
+        }
 
 class CreateWaypointAPI(Resource):
     def parse_args(self):
