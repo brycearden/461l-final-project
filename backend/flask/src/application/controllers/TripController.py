@@ -98,10 +98,7 @@ class CreateTripAPI(Resource):
 
     @marshal_with(trip_fields)
     def post(self):
-        print "HELLO HELLO HELLO ELLO"
-        print "we are trying to create a trip!"
         args = self.parse_args()
-        print args
         try:
             t = TripModel()
 
@@ -115,6 +112,5 @@ class CreateTripAPI(Resource):
             t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
-            print "we are about to return"
         return t
 
