@@ -14,7 +14,8 @@ def ignored(*exceptions):
         pass
 
 # port the app server is deployed on
-DEV_APPSERVER = "http://localhost:8080"
+# DEV_APPSERVER = "http://localhost:8080"
+DEV_APPSERVER = "http://journey-1236.appspot.com"
 
 parser = argparse.ArgumentParser(description='runs tests for all file args')
 parser.add_argument('filenames',
