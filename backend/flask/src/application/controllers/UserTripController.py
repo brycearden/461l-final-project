@@ -42,22 +42,6 @@ class UserTripAPI(Resource):
         t.add_user(u)
         return u
 
-    @marshal_with(user_fields)
-    def delete(self, user_id):
-        """ Removes an association from a User
-
-        Does not delete the Trip from the database
-        """
-        args = self.parse_args()
-        u = User.get_by_id(user_id)
-        t = TripModel.get_by_id(args['trip_id'])
-
-        if u is None or t is None:
-            abort(404)
-
-        t.remove_user(u)
-        return u
-
 
 class UserTripListAPI(Resource):
     """Returns the List of Trips associated with a User"""
