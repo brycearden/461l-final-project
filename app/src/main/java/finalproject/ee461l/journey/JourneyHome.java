@@ -235,7 +235,7 @@ public class JourneyHome extends FragmentActivity {
      * @param view
      */
     public void startHandler(View view) {
-        /*if (!isSignedIn) {
+        if (!isSignedIn) {
             //We do not want to allow trip creation unless the user is signed in
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Login Required")
@@ -249,7 +249,7 @@ public class JourneyHome extends FragmentActivity {
                     })
                     .show();
             return;
-        }*/
+        }
         Intent intent = new Intent(this, StartTrip.class);
         //If we decide to pass values from this screen, we do that here
         intent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
@@ -497,6 +497,25 @@ public class JourneyHome extends FragmentActivity {
         FragmentManager manager = getFragmentManager();
         if (manager.getBackStackEntryCount() > 0) {
             manager.popBackStack();
+            if (manager.getBackStackEntryCount() == 1) {
+                //This is the last thing in the stack; therefore it is the MapFragment. Let's restore buttons
+                Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+                button.setVisibility(View.VISIBLE);
+                ImageButton menu = (ImageButton) JourneyHome.this.findViewById(R.id.menu);
+                menu.setVisibility(View.VISIBLE);
+                if (JourneyHome.this.findViewById(R.id.join_trip) != null) {
+                    //Trip not started yet
+                    button = (Button) JourneyHome.this.findViewById(R.id.join_trip);
+                    button.setVisibility(View.VISIBLE);
+                }
+                else {
+                    //Trip started
+                    ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
+                    ibutton.setVisibility(View.VISIBLE);
+                    RelativeLayout dirs = (RelativeLayout) JourneyHome.this.findViewById(R.id.directions_button);
+                    dirs.setVisibility(View.VISIBLE);
+                }
+            }
         }
         else {
             super.onBackPressed();
@@ -532,19 +551,21 @@ public class JourneyHome extends FragmentActivity {
                 case 2:
                     //Help
                     //First we need to remove whatever buttons are on the screen
+                    Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+                    button.setVisibility(View.GONE);
+                    ImageButton menu = (ImageButton) JourneyHome.this.findViewById(R.id.menu);
+                    menu.setVisibility(View.GONE);
                     if (JourneyHome.this.findViewById(R.id.join_trip) != null) {
                         //Trip not started yet
-                        Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
-                        button.setVisibility(View.GONE);
                         button = (Button) JourneyHome.this.findViewById(R.id.join_trip);
                         button.setVisibility(View.GONE);
                     }
                     else {
                         //Trip started
-                        Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
-                        button.setVisibility(View.GONE);
                         ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
                         ibutton.setVisibility(View.GONE);
+                        RelativeLayout dirs = (RelativeLayout) JourneyHome.this.findViewById(R.id.directions_button);
+                        dirs.setVisibility(View.GONE);
                     }
                     FragmentManager manager = getFragmentManager();
                     manager.beginTransaction().addToBackStack("home").replace(R.id.home_view, helpFragment).commit();

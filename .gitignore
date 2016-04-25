@@ -71,3 +71,18 @@ target/
 # pyenv
 .python-version
 
+#.idea/libraries
+.idea/libraries/*
+
+#gradle folder
+.gradle/
+
+#iml files
+Journey.iml
+
+#local properties
+local.properties
+
+#DS Store
+.DS_Store
+

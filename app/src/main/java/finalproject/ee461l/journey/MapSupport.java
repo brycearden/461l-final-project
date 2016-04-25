@@ -371,6 +371,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public RelativeLayout addDirectionsToLayout() {
         RelativeLayout dirLayout = new RelativeLayout(journeyHome);
+        dirLayout.setId(R.id.directions_button);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         dirLayout.setLayoutParams(params);
