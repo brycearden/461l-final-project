@@ -44,15 +44,12 @@ class TripWaypointAPI(Resource):
         args = self.parse_args()
         t = TripModel.get_by_id(trip_id)
         w = WaypointModel.get_by_id(args['waypoint_id'])
-
         # if the waypoint or trips don't exist, abort
         if not t or not w:
             abort(404)
-
-        t.waypoints.append(w.key)
+        t.waypoint_ids.append(w.key)
         t.put()
         return t
-
 
 class TripWaypointListAPI(Resource):
     """REST API for the api/trip/waypoint/list URL
@@ -62,14 +59,14 @@ class TripWaypointListAPI(Resource):
     @marshal_with(waypoint_list_fields)
     def get(self, trip_id):
         data = []
-        t = trip.get_by_id(trip_id)
+        t = TripModel.get_by_id(trip_id)
 
         if t is None:
             abort(404)
 
         # get the list of objects associated with the User
-        for key in t.waypoints:
-            w = WaypointModel.get(key)
+        for key in t.waypoint_ids:
+            w = WaypointModel.get_by_id(key.id())
             if w is not None:
                 data.append(w)
 

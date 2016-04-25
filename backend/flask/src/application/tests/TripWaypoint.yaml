@@ -1,0 +1,57 @@
+
+---
+- config:
+    - testset: "Trip Basic Tests"
+
+- test:
+    - group: "Trip-Post"
+    - name: "Basic post"
+    - url: "/api/trip/new"
+    - method: "POST"
+    - body: '{"active": true, "startloc": "7464.304", "endloc": "1232.434"}'
+    - headers: {Content-Type: application/json}
+    - extract_binds:
+        - 'id': {'jsonpath_mini': 'key'}
+- test:
+    - group: "Waypoint-Success"
+    - name: "Basic post"
+    - url: "/api/waypoint/new"
+    - method: "POST"
+    - body: '{"lat": "4.657", "lon": "7464.304"}'
+    - headers: {Content-Type: application/json}
+    - extract_binds:
+        - 'w_id': {'jsonpath_mini': 'key'}
+- test:
+    - group: "TripWaypoint-Put"
+    - name: "Add a waypoint to the trip"
+    - url: {template: "/api/trip/waypoint/$id"}
+    - method: "PUT"
+    - body: {template: '{"waypoint_id": $w_id}'}
+    - headers: {Content-Type: application/json}
+- test:
+    - group: "TripWaypoint-Get"
+    - name: "Get a trip thats been deleted"
+    - url: {template: "/api/trip/waypoint/list/$id"}
+    - method: "GET"
+    - validators: # operator is applied as: <actual> <operator> <expected>
+      - compare: {jsonpath_mini: "waypoints",     comparator: "regex",     expected: '.*7464.304.*'}
+- test:
+    - group: "TripWaypoint-Delete"
+    - name: "Delete the waypoint from the trip"
+    - url: {template: "/api/trip/waypoint/remove/$id"}
+    - method: "PUT"
+    - headers: {'Content-Type': 'application/json'}
+    - body: {template: '{"waypoint_id": $w_id}'}
+- test:
+    - group: "TripWaypoint-Get after delete"
+    - name: "Get a trip thats been deleted"
+    - url: {template: "/api/trip/waypoint/list/$id"}
+    - method: "GET"
+    - validators: # operator is applied as: <actual> <operator> <expected>
+      - compare: {jsonpath_mini: "waypoints",     comparator: "regex",     expected: '\[\]'}
+- test:
+    - group: "Trip-Delete"
+    - name: "Delete the trip"
+    - url: {template: "/api/trip/$id"}
+    - method: "DELETE"
+

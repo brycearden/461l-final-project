@@ -34,7 +34,7 @@
     - url: "/api/user/trip/test1234@school.edu"
     - method: "PUT"
     - headers: {'Content-Type': 'application/json'}
-    - body: {template: '{"trip_id": "$id"}'}
+    - body: {template: '{"trip_id": $id}'}
 - test:
     - group: "UserTrip-Get"
     - name: "Get TripList from user"
