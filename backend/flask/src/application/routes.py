@@ -10,8 +10,8 @@ from controllers.AuthController import login, logout
 from controllers.UserController import UserAPI
 from controllers.TripController import TripAPI, CreateTripAPI
 from controllers.WaypointController import WaypointAPI, CreateWaypointAPI
-from controllers.TripWaypointController import TripWaypointAPI, TripWaypointListAPI
-from controllers.UserTripController import UserTripAPI, UserTripListAPI
+from controllers.TripWaypointController import TripWaypointAPI, TripWaypointListAPI, TripWaypointDeleteAPI
+from controllers.UserTripController import UserTripAPI, UserTripListAPI, UserTripDeleteAPI
 
 # Allow cross domain requests from localhost
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:1234"}})
@@ -39,6 +39,9 @@ api.add_resource(TripWaypointAPI, '/api/trip/waypoint/<int:trip_id>')
 
 api.add_resource(WaypointAPI, '/api/waypoint/<int:id>')
 api.add_resource(CreateWaypointAPI, '/api/waypoint/new')
+
+api.add_resource(TripWaypointDeleteAPI, '/api/trip/waypoint/remove/<int:trip_id>')
+api.add_resource(UserTripDeleteAPI, '/api/user/trip/remove/<string:user_id>')
 
 
 ## URL dispatch rules
