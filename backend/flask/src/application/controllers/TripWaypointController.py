@@ -92,3 +92,42 @@ class TripWaypointListAPI(Resource):
             'waypoints': data
         }
 
+class TripWaypointDeleteAPI(Resource):
+    """ Removes a Waypoint Relationship from a Trip without deleting Trip
+
+    Unfortunately, the REST API for a delete ignores all objects that are
+    passed in the message body. Therefore we are going to use another PUT
+    method to remove a relationship from the objects.
+    """
+
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'waypoint_id',
+            type=int,
+            default=None,
+            help='possible Key for a Trip object',
+            location='json',
+        )
+        return parser.parse_args()
+
+    @marshal_with(trip_fields)
+    def put(self, trip_id):
+        args = self.parse_args()
+
+        if not args.waypoint_id:
+            abort(404)
+
+        w = WaypointModel.get_by_id(args.waypoint_id)
+        t = TripModel.get_by_id(trip_id)
+
+        if not t:
+            abort(404)
+
+        t.waypoint_ids.remove(w.key)
+        t.put()
+        return {
+            "msg": "object {} has been deleted".format(trip_id),
+            "time": str(datetime.datetime.now()),
+        }
+

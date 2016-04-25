@@ -17,6 +17,7 @@ class UserTripAPI(Resource):
         parser.add_argument(
             'trip_id',
             type=int,
+            default=None,
             help='possible Key for a Trip object',
             location='json',
         )
@@ -74,4 +75,43 @@ class UserTripListAPI(Resource):
             if t is not None:
                 data.append(t)
         return {'trips': data}, 200
+
+class UserTripDeleteAPI(Resource):
+    """ Removes a Trip Relationship from a User without deleting User
+
+    Unfortunately, the REST API for a delete ignores all objects that are
+    passed in the message body. Therefore we are going to use another PUT
+    method to remove a relationship from the objects.
+    """
+
+    def parse_args(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'trip_id',
+            type=int,
+            default=None,
+            help='possible Key for a Trip object',
+            location='json',
+        )
+        return parser.parse_args()
+
+    @marshal_with(user_fields)
+    def put(self, user_id):
+        args = self.parse_args()
+
+        if not args.trip_id:
+            abort(404)
+
+        t = TripModel.get_by_id(args.trip_id)
+        u = User.get_by_id(user_id)
+
+        if not u:
+            abort(404)
+
+        u.trip_ids.remove(t.key)
+        u.put()
+        return {
+            "msg": "object {} has been deleted".format(user_id),
+            "time": str(datetime.datetime.now()),
+        }
 
