@@ -36,11 +36,11 @@
     - headers: {Content-Type: application/json}
 - test:
     - group: "Trip-Delete"
-    - name: "Put to modify trip"
+    - name: "Delete the trip"
     - url: {template: "/api/trip/$id"}
     - method: "DELETE"
 - test:
-    - group: "EXPECTED GET FAILURE"
+    - group: "Trip-Get after delete"
     - name: "Get a trip thats been deleted"
     - url: {template: "/api/trip/$id"}
     - method: "GET"

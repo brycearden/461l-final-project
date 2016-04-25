@@ -42,7 +42,7 @@
     - method: "DELETE"
     - headers: {Content-Type: application/json}
 - test:
-    - group: "EXPECTED GET FAILURE"
+    - group: "User-Get after delete"
     - name: "Get a user thats been deleted"
     - url: "/api/user/test123@school.edu"
     - method: "GET"
