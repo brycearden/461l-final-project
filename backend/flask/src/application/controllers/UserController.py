@@ -45,6 +45,15 @@ class UserAPI(Resource):
             if args['isleader'] is not None:
                 u.isleader = args['isleader']
 
+            u.trip_ids = list()
+            #test = list()
+            #t = TripModel()
+            #t.startLoc = "post trip!"
+            #key = t.put()
+            #u.trip_ids.append(key)
+            # TODO: if there are doubles due to default initialization then do
+            # we have multiple keys pointing to the same thing?
+
             u.key = ndb.Key(User, u.email)
             u.put()
         except BaseException as e:

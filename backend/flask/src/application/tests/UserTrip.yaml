@@ -45,9 +45,22 @@
 - test:
     - group: "UserTrip-Delete"
     - name: "Deletes the created Trip to the User"
-    - url: "/api/user/trip/test1234@school.edu"
-    - method: "DELETE"
+    - url: "/api/user/trip/remove/test1234@school.edu"
+    - method: "PUT"
     - headers: {'Content-Type': 'application/json'}
     - body: {template: '{"trip_id": $id}'}
+- test:
+    - group: "UserTrip-Get after delete"
+    - name: "Get TripList from user after delete"
+    - url: "/api/user/trip/list/test1234@school.edu"
+    - method: "GET"
+    - validators: # operator is applied as: <actual> <operator> <expected>
+      - compare: {jsonpath_mini: "trips",     comparator: "regex",     expected: '\[\]'}
+- test:
+    - group: "User-Delete"
+    - name: "Put to modify user"
+    - url: "/api/user/test1234@school.edu"
+    - method: "DELETE"
+    - headers: {Content-Type: application/json}
 
 
