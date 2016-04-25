@@ -46,10 +46,10 @@ class UserAPI(Resource):
                 u.isleader = args['isleader']
             u.trip_ids = list()
             #test = list()
-            t = TripModel()
-            t.startLoc = "post trip!"
-            key = t.put()
-            u.trip_ids.append(key)
+            #t = TripModel()
+            #t.startLoc = "post trip!"
+            #key = t.put()
+            #u.trip_ids.append(key)
             # TODO: if there are doubles due to default initialization then do
             # we have multiple keys pointing to the same thing?
 
