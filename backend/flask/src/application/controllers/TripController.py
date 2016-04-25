@@ -104,19 +104,14 @@ class CreateTripAPI(Resource):
         print args
         try:
             t = TripModel()
-            print "created a trip object"
 
             # apply command args
             if args.active is not None:
                 t.populate(active=args.active)
-            print "populated active"
-            # if args.startloc is not None:
-            #     t.populate(startloc=args.startloc)
-            # print "populated startloc"
-            # if args.endloc is not None:
-            #     t.populate(endloc=args.endloc)
-            print "populated endloc"
-            print "populated"
+            if args.startloc is not None:
+                t.populate(startloc=args.startloc)
+            if args.endloc is not None:
+                t.populate(endloc=args.endloc)
             t.put()
         except BaseException as e:
             abort(500, Error="Exception- {0}".format(e.message))
