@@ -2,6 +2,11 @@ package finalproject.ee461l.journey;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.uiautomator.UiDevice;
+import android.support.test.uiautomator.UiObject;
+import android.support.test.uiautomator.UiObjectNotFoundException;
+import android.support.test.uiautomator.UiSelector;
 
 import com.google.android.gms.maps.MapFragment;
 
@@ -14,6 +19,7 @@ public class InstrumentationTest extends android.test.ActivityInstrumentationTes
 
     JourneyHome home;
     Fragment active;
+    TestFunctions tests;
 
     public InstrumentationTest() {
         super(JourneyHome.class);
@@ -24,9 +30,10 @@ public class InstrumentationTest extends android.test.ActivityInstrumentationTes
         super.setUp();
         home = (JourneyHome) getActivity();
         active = home.getFragmentManager().findFragmentById(R.id.home_view);
+        tests = TestFunctions.getInstance();
     }
 
-    public void testOnCreate() {
+    public void testOnCreate() throws UiObjectNotFoundException {
         //Objects that are instantiated
         Assert.assertNotNull(home.voice);
         Assert.assertNotNull(home.map);
@@ -39,5 +46,12 @@ public class InstrumentationTest extends android.test.ActivityInstrumentationTes
         //Fragment that is up
         Assert.assertNotNull(active);
         Assert.assertTrue(active.getClass() == MapFragment.class);
+
+        //Note: This is proof that we can use UIAutomator even in pure instrumentation tests
+        tests.device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        UiObject test = tests.device.findObject(new UiSelector()
+                .resourceId("finalproject.ee461l.journey:id/menu"));
+        Assert.assertTrue(test.exists());
+        test.click();
     }
 }

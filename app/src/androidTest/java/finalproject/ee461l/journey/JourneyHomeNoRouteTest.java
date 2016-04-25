@@ -1,5 +1,7 @@
 package finalproject.ee461l.journey;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObjectNotFoundException;
@@ -20,16 +22,12 @@ public class JourneyHomeNoRouteTest {
     private TestFunctions tests;
 
     @Before
-    public void setup() throws UiObjectNotFoundException {
+    public void setup() throws UiObjectNotFoundException, InterruptedException {
         tests = TestFunctions.getInstance();
         tests.setupApplication();
 
         //Log in
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Thread.sleep(500);
         tests.logInOut(true);
     }
 

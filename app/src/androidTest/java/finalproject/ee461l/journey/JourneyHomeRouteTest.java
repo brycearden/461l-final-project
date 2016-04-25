@@ -51,28 +51,43 @@ public class JourneyHomeRouteTest {
                 .resourceId("finalproject.ee461l.journey:id/speech_button"));
         Assert.assertTrue(speech.exists());
 
+        //Directions
+        UiObject dir = tests.device.findObject(new UiSelector()
+                .text("Route Directions"));
+        Assert.assertTrue(dir.exists());
+
         //Start pin
+        Thread.sleep(1000); //1 additional second should be enough. Sometimes it takes a while to focus
         UiObject start = tests.device.findObject(new UiSelector()
                 .description("Current Location"));
         if (!start.exists()) start = tests.device.findObject(new UiSelector()
                 .description("Start Location"));
-        if (!start.exists()) Thread.sleep(1000); //1 additional second should be enough. Sometimes it takes a while to focus
         Assert.assertTrue(start.exists()); //Fails for some reason?
 
         //End pin
         UiObject end = tests.device.findObject(new UiSelector()
                 .description("End Location"));
         Assert.assertTrue(end.exists());
-
-        //Directions
-        UiObject dir = tests.device.findObject(new UiSelector()
-                .text("Route Directions"));
-        Assert.assertTrue(dir.exists());
     }
 
     @Test
-    public void addStopToRoute() throws UiObjectNotFoundException {
-        //Populate when Gordie finishes
+    public void directions() throws UiObjectNotFoundException {
+        UiObject dir = tests.device.findObject(new UiSelector()
+                .className("android.widget.RelativeLayout")
+                .clickable(true)
+                .childSelector(new UiSelector()
+                        .text("Route Directions"))
+        );
+        Assert.assertTrue(dir.exists());
+        dir.click();
+
+        //Make sure we are on a new activity
+        dir = tests.device.findObject(new UiSelector()
+                .resourceId("finalproject.ee461l.journey:id/action_bar")
+                .childSelector(new UiSelector()
+                        .text("Route Directions"))
+        );
+        Assert.assertTrue(dir.exists());
     }
 
     @Test
@@ -105,22 +120,7 @@ public class JourneyHomeRouteTest {
     }
 
     @Test
-    public void directions() throws UiObjectNotFoundException {
-        UiObject dir = tests.device.findObject(new UiSelector()
-                .className("android.widget.RelativeLayout")
-                .clickable(true)
-                .childSelector(new UiSelector()
-                        .text("Route Directions"))
-        );
-        Assert.assertTrue(dir.exists());
-        dir.click();
-
-        //Make sure we are on a new activity
-        dir = tests.device.findObject(new UiSelector()
-                .resourceId("finalproject.ee461l.journey:id/action_bar")
-                .childSelector(new UiSelector()
-                        .text("Route Directions"))
-        );
-        Assert.assertTrue(dir.exists());
+    public void addStopToRoute() throws UiObjectNotFoundException {
+        //Populate when Gordie finishes
     }
 }
