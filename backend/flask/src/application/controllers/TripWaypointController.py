@@ -53,21 +53,6 @@ class TripWaypointAPI(Resource):
         t.put()
         return t
 
-    def delete(self, trip_id):
-        """ Removes an association from a Trip
-
-        Does not delete the waypoint from the database
-        """
-        args = self.parse_args()
-        t = TripModel.get_by_id(trip_id)
-        w = WaypointModel.get_by_id(args['waypoint_id'])
-
-        if not t or not w:
-            abort(404)
-
-        t.waypoints.remove(w.key)
-        t.put()
-        return t
 
 class TripWaypointListAPI(Resource):
     """REST API for the api/trip/waypoint/list URL
