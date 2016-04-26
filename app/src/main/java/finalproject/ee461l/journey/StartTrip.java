@@ -45,6 +45,7 @@ public class StartTrip extends AppCompatActivity {
         setContentView(R.layout.activity_start_trip);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
@@ -136,6 +137,7 @@ public class StartTrip extends AppCompatActivity {
             Place startPlace = null;
             Place endPlace = null;
             String result = "";
+            HttpsURLConnection request = null;
 
             int currentPlace = 0;
             for (int i = 0; i < 2; currentPlace++, i++) {
@@ -159,7 +161,7 @@ public class StartTrip extends AppCompatActivity {
                     startId = startPlace.getId();
                 }
                 endId = endPlace.getId();
-                HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
+                request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
                 result = readStream(in);
@@ -167,6 +169,8 @@ public class StartTrip extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                request.disconnect();
             }
             return result;
         }
@@ -187,6 +191,8 @@ public class StartTrip extends AppCompatActivity {
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+            //Attach caravan info
+            intent.putExtra("isCaravanTrip", caravan);
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();

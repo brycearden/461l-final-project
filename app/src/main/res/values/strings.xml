@@ -66,4 +66,9 @@
     <string name="help_add_request_stop">
         * Page WIP *
     </string>
+
+    <!-- Join Trip -->
+    <string name="join_trip_instruction">
+        Please enter the email address of the person who created the trip below.
+    </string>
 </resources>

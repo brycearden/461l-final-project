@@ -73,6 +73,8 @@ public class JourneyHome extends FragmentActivity {
     protected MapSupport map;
     protected NavDrawerSupport nav;
 
+    private boolean isTripActive;
+
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
     public static final int JOIN_TRIP = 1;
@@ -153,6 +155,7 @@ public class JourneyHome extends FragmentActivity {
         timeToStop = 0;
         distanceFromRoute = 0;
         isSignedIn = false;
+        isTripActive = false;
     }
 
     @Override
@@ -280,7 +283,7 @@ public class JourneyHome extends FragmentActivity {
         }
         Intent intent = new Intent(this, JoinTrip.class);
         //If we decide to pass values from this screen, we do that here
-        startActivity(intent);
+        startActivityForResult(intent, JourneyHome.JOIN_TRIP);
     }
 
     public void stopHandler(View view) {
@@ -310,11 +313,23 @@ public class JourneyHome extends FragmentActivity {
             // From Start Handler
             if (resultCode == RESULT_OK) {
                 //It worked
-                journeyStartTrip(data);
+                journeyStartTrip(data, true);
+                isTripActive = true;
             }
             else {
                 //Null directions
                 System.out.println("Returned null directions from StartTrip");
+            }
+        }
+        else if (requestCode == JourneyHome.JOIN_TRIP) {
+            if (resultCode == RESULT_OK) {
+                //It worked
+                journeyStartTrip(data, false);
+                isTripActive = true;
+            }
+            else {
+                //Didn't work
+                System.out.println("Trip not found");
             }
         }
         else if (requestCode == JourneyHome.VOICE_START) {
@@ -353,10 +368,11 @@ public class JourneyHome extends FragmentActivity {
         }
     }
 
-    public void journeyStartTrip(Intent data) {
+    public void journeyStartTrip(Intent data, boolean createTrip) {
         //We will start by changing the buttons on screen
         adjustView();
         map.setIds(data);
+        map.setCaravanTrip(data.getBooleanExtra("isCaravanTrip", false));
 
         //Now we will deal with the route directions
         JSONObject directions = null;
@@ -391,6 +407,9 @@ public class JourneyHome extends FragmentActivity {
 
         //Finally we will adjust the zoom to the appropriate level
         map.adjustMapZoom(data);
+
+        //If we are caravaning the trip, we need to post to the backend
+        if (map.getCaravanTrip() && createTrip) map.postTripToBackend(nav.getUserEmail());
     }
 
     public void journeyStartWaypointTrip(Intent data) {
@@ -518,7 +537,22 @@ public class JourneyHome extends FragmentActivity {
             }
         }
         else {
-            super.onBackPressed();
+            if (isTripActive) {
+                new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("End Trip")
+                        .setMessage("Are you sure you want to exit this trip? If you created this trip it will be deleted.")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (map.getCaravanTrip()) map.deleteTripFromBackend(nav.getUserEmail());
+                            }
+
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+            else super.onBackPressed();
         }
     }
 

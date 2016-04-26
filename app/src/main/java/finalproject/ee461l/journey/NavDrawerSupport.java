@@ -22,10 +22,12 @@ import java.util.ArrayList;
 public class NavDrawerSupport {
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
+    private String userEmail;
 
     public NavDrawerSupport(Context context, ListView list, DrawerLayout drawer) {
         mDrawerList = list;
         mDrawerLayout = drawer;
+        userEmail = "";
 
         navDrawer(context);
     }
@@ -72,6 +74,8 @@ public class NavDrawerSupport {
         mDrawerLayout.openDrawer(mDrawerList);
     }
 
+    public String getUserEmail() { return userEmail; }
+
     //Google Sign in functionality
     public boolean signIn(Intent data, Context context) {
         GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -79,6 +83,7 @@ public class NavDrawerSupport {
             //Successfully signed in
             GoogleSignInAccount acct = result.getSignInAccount();
             System.out.println(acct.getDisplayName() + ", " + acct.getEmail());
+            userEmail = acct.getEmail();
             //We also need to update the nav drawer to allow the user to log out
             updateNavList(context, false);
             return true;
@@ -101,6 +106,7 @@ public class NavDrawerSupport {
                 }
         );
         updateNavList(context, true);
+        userEmail = "";
         return false;
     }
 }
