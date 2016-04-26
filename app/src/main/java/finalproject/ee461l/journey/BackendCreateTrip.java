@@ -29,6 +29,12 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class BackendCreateTrip extends AsyncTask<String, Void, String> {
 
+    private BackendFunctionality backend;
+
+    public BackendCreateTrip() {
+        backend = BackendFunctionality.getInstance();
+    }
+
     @Override
     protected String doInBackground(String... params) {
         String userEmail = "";
@@ -54,8 +60,7 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
         URL url = null;
         try {
             //Check to see if the user exists
-            url = new URL("http://journey-1236.appspot.com/api/user/" + userEmail);
-            HttpURLConnection request = (HttpURLConnection) url.openConnection();
+            HttpURLConnection request = backend.searchForUser(userEmail);
             if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 System.out.println("User does not exist, response code: " + request.getResponseCode());
                 //Create User necessary
@@ -67,69 +72,22 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
             request.disconnect();
             //If we need to create the User object, do so here
             if (createUser) {
-                url = new URL("http://journey-1236.appspot.com/api/user/" + userEmail);
-                request = (HttpURLConnection) url.openConnection();
-                request.setRequestMethod("POST");
-                request.setDoOutput(true);
-                request.setDoInput(true);
-                request.setRequestProperty("Content-Type", "application/json");
-                request.setChunkedStreamingMode(0);
-                request.connect();
-
-                JSONObject user = new JSONObject();
-                user.put("isleader", true);
-                byte[] data = user.toString().getBytes("UTF-8");
-
-                DataOutputStream output = new DataOutputStream(request.getOutputStream());
-                writeStream(output, data);
-                output.close();
+                request = backend.createUser(userEmail);
+                request.disconnect();
             }
             //Create the trip
-            url = new URL("http://journey-1236.appspot.com/api/trip/new");
-            request = (HttpURLConnection) url.openConnection();
-            request.setRequestMethod("POST");
-            request.setDoOutput(true);
-            request.setDoInput(true);
-            request.setRequestProperty("Content-Type", "application/json");
-            request.setChunkedStreamingMode(0);
-            request.connect();
-
-            JSONObject trip = new JSONObject();
-            trip.put("active", true);
-            trip.put("startloc", startPlace);
-            trip.put("endloc", endPlace);
-            byte[] data = trip.toString().getBytes("UTF-8");
-
-            DataOutputStream output = new DataOutputStream(request.getOutputStream());
-            writeStream(output, data);
-            output.close();
+            request = backend.createTrip(startPlace, endPlace);
 
             InputStream in = new BufferedInputStream(request.getInputStream());
-            result = readStream(in);
+            result = backend.readStream(in);
             request.disconnect();
 
             //Finally, associate this user with this trip
             String tripId = getTripId(result);
-            url = new URL("http://journey-1236.appspot.com/api/user/trip/" + userEmail);
-            request = (HttpURLConnection) url.openConnection();
-            request.setRequestMethod("PUT");
-            request.setDoOutput(true);
-            request.setDoInput(true);
-            request.setRequestProperty("Content-Type", "application/json");
-            request.setChunkedStreamingMode(0);
-            request.connect();
-
-            trip = new JSONObject();
-            trip.put("trip_id", tripId);
-            data = trip.toString().getBytes("UTF-8");
-
-            output = new DataOutputStream(request.getOutputStream());
-            writeStream(output, data);
-            output.close();
+            request = backend.connectUserTrip(userEmail, tripId);
 
             in = new BufferedInputStream(request.getInputStream());
-            result = readStream(in);
-
+            result = backend.readStream(in);
             request.disconnect();
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -144,23 +102,6 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
 
     protected void onPostExecute(String result) {
         System.out.println("Returned JSON Object: " + result);
-    }
-
-    private void writeStream(DataOutputStream output, byte[] data) throws JSONException, IOException {
-        output.write(data);
-        output.flush();
-        output.close();
-    }
-
-    protected String readStream(InputStream in) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-            builder.append(line);
-        }
-        in.close();
-        return builder.toString();
     }
 
     protected String getTripId(String result) throws JSONException {

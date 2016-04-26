@@ -23,11 +23,13 @@ import javax.net.ssl.HttpsURLConnection;
 public class SearchForUser extends AsyncTask<String, Void, String> {
 
     private OnTaskCompleted listener;
+    private BackendFunctionality backend;
     private String start;
     private String end;
 
     public SearchForUser(OnTaskCompleted listener) {
         this.listener = listener;
+        backend = BackendFunctionality.getInstance();
     }
 
     @Override
@@ -36,8 +38,7 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
         String email = params[0]; //Only 1 parameter here
         URL url = null;
         try {
-            url = new URL("http://journey-1236.appspot.com/api/user/" + email);
-            HttpURLConnection request = (HttpURLConnection) url.openConnection();
+            HttpURLConnection request = backend.searchForUser(email);
             if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 System.out.println("User does not exist, response code: " + request.getResponseCode());
                 request.disconnect();
@@ -45,28 +46,15 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
             else {
                 //We need to see if this user has any trips
                 InputStream in = new BufferedInputStream(request.getInputStream());
-                String json = readStream(in); //This is a JSONObject. Let's get the trip ids
+                String json = backend.readStream(in); //This is a JSONObject. Let's get the trip ids
                 request.disconnect();
-
-                //Delete some trips (Note: This is how you delete a trip
-                /*
-                url = new URL("http://journey-1236.appspot.com/api/trip/5732568548769792");
-                request = (HttpURLConnection) url.openConnection();
-                request.setRequestMethod("DELETE");
-                request.connect();
-
-                in = new BufferedInputStream(request.getInputStream());
-                System.out.println("Delete result: " + readStream(in));
-                request.disconnect();
-                */
 
                 JSONObject user = new JSONObject(json);
                 JSONArray tripIds = user.getJSONArray("trip_ids");
                 System.out.println("Trip IDs: " + tripIds);
                 for (int i = 0; i < tripIds.length(); i++) {
                     //We need to see if this trip is active or not
-                    url = new URL("http://journey-1236.appspot.com/api/trip/" + tripIds.get(i));
-                    request = (HttpURLConnection) url.openConnection();
+                    request = backend.searchForTrip(tripIds.getString(i));
                     if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                         System.out.println("Trip does not exist, response code: " + request.getResponseCode());
                         request.disconnect();
@@ -74,7 +62,7 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
                     else {
                         //Trip exists. Let's see if it is active or not
                         in = new BufferedInputStream(request.getInputStream());
-                        json = readStream(in); //This is a JSONObject. Let's get the trip ids
+                        json = backend.readStream(in); //This is a JSONObject. Let's get the trip ids
                         request.disconnect();
 
                         JSONObject trip = new JSONObject(json);
@@ -98,7 +86,7 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
                         + coords[2] + "," + coords[3] + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
                 HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                 in = new BufferedInputStream(conn.getInputStream());
-                result = readStream(in);
+                result = backend.readStream(in);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -113,17 +101,6 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String result) {
         System.out.println("Result: " + result);
         listener.onTaskCompleted(result, start, end);
-    }
-
-    protected String readStream(InputStream in) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-            builder.append(line);
-        }
-        in.close();
-        return builder.toString();
     }
 
     protected String[] getLatLng(String start, String end) { //Format: "lat/lng: (xx.xxxx,-xx.xxxx)"
