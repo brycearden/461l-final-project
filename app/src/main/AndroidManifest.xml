@@ -58,7 +58,9 @@
 
         <activity
             android:name=".JourneyHome"
-            android:label="@string/title_activity_journey_home">
+            android:label="@string/title_activity_journey_home"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

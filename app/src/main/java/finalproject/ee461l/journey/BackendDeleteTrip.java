@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 
 import org.json.JSONArray;
@@ -22,10 +23,12 @@ import java.net.URL;
 public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
     private OnTaskCompleted listener;
     private BackendFunctionality backend;
+    private ProgressDialog dialog;
 
-    public BackendDeleteTrip(OnTaskCompleted listener) {
+    public BackendDeleteTrip(OnTaskCompleted listener, JourneyHome home) {
         this.listener = listener;
         backend = BackendFunctionality.getInstance();
+        dialog = new ProgressDialog(home);
     }
 
     @Override
@@ -33,6 +36,7 @@ public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
         String userEmail = params[0];
         String startLoc = params[1];
         String endLoc = params[2];
+        boolean isLeader = true;
         URL url = null;
         try {
             HttpURLConnection request = backend.searchForUser(userEmail);
@@ -48,10 +52,9 @@ public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
             request.disconnect();
 
             JSONObject user = new JSONObject(json);
-            boolean isLeader = user.getBoolean("isleader");
+            isLeader = user.getBoolean("isleader");
             if (!isLeader) {
                 System.out.println("User is not the trip leader. Therefore not deleting the trip.");
-                return null;
             }
 
             //Will try to find the trip associated with this start/end location
@@ -108,7 +111,8 @@ public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
             request.disconnect();
             System.out.println("Delete: " + json);
 
-            //Finally, we will delete the trip object
+            //Finally, we will delete the trip object if the user is the leader
+            if (!isLeader) return null;
             request = backend.deleteTrip(tripId);
 
             in = new BufferedInputStream(request.getInputStream());
@@ -125,8 +129,16 @@ public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
         return null;
     }
 
+    @Override
+    protected void onPreExecute() {
+        dialog.setMessage("Please Wait...");
+        dialog.show();
+    }
+
+    @Override
     protected void onPostExecute(Void test) {
         System.out.println("onPostExecute reached");
+        if (dialog.isShowing()) dialog.dismiss();
         listener.onTaskCompleted("", "", "");
     }
 }

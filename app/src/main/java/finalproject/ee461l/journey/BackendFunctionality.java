@@ -55,7 +55,28 @@ public class BackendFunctionality {
         return request;
     }
 
-    protected HttpURLConnection createUser(String email) throws IOException, JSONException {
+    protected HttpURLConnection userSetIsLeader(String email, boolean isLeader) throws IOException, JSONException {
+        URL url = new URL("http://journey-1236.appspot.com/api/user/" + email);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.setRequestMethod("PUT");
+        request.setDoOutput(true);
+        request.setDoInput(true);
+        request.setRequestProperty("Content-Type", "application/json");
+        request.setChunkedStreamingMode(0);
+        request.connect();
+
+        JSONObject user = new JSONObject();
+        user.put("isleader", isLeader);
+        byte[] data = user.toString().getBytes("UTF-8");
+
+        DataOutputStream output = new DataOutputStream(request.getOutputStream());
+        writeStream(output, data);
+        output.close();
+
+        return request;
+    }
+
+    protected HttpURLConnection createUser(String email, boolean isLeader) throws IOException, JSONException {
         URL url = new URL("http://journey-1236.appspot.com/api/user/" + email);
         HttpURLConnection request = (HttpURLConnection) url.openConnection();
         request.setRequestMethod("POST");
@@ -66,7 +87,7 @@ public class BackendFunctionality {
         request.connect();
 
         JSONObject user = new JSONObject();
-        user.put("isleader", true);
+        user.put("isleader", isLeader);
         byte[] data = user.toString().getBytes("UTF-8");
 
         DataOutputStream output = new DataOutputStream(request.getOutputStream());

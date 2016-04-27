@@ -11,16 +11,19 @@ import android.widget.EditText;
 
 public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
 
+    private String userEmail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join_trip);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
+        userEmail = intent.getStringExtra("UserEmail");
     }
 
     public void searchForUser(View view) {
@@ -28,7 +31,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         String email = emailView.getText().toString().toLowerCase();
         if (!email.contains("@") || !email.contains(".")) return;
         //Quite possibly a valid email. Let's go through the checks
-        new SearchForUser(this).execute(email);
+        new SearchForUser(this, this).execute(email, userEmail);
     }
 
     @Override

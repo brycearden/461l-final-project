@@ -3,6 +3,7 @@ package finalproject.ee461l.journey;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +32,7 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -108,6 +110,7 @@ public class JourneyHome extends FragmentActivity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     GoogleApiClient client;
+    GoogleSignInOptions options;
 
 
     @Override
@@ -123,12 +126,12 @@ public class JourneyHome extends FragmentActivity {
         FragmentManager manager = getFragmentManager();
 
         //Configure Google sign-in options
-        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
-        map = new MapSupport(this, manager, client);
-        voice = new VoiceSupport(this);
+        map = MapSupport.getInstance(this, manager, client);
+        voice = VoiceSupport.getInstance(this);
         // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this)
@@ -148,7 +151,7 @@ public class JourneyHome extends FragmentActivity {
         mDrawerList.setOnItemClickListener(new NavClickListener());
         //Rest of setup
         //GeneralSupport.navDrawer(mDrawerList, mDrawerLayout, this);
-        nav = new NavDrawerSupport(this, mDrawerList, mDrawerLayout);
+        nav = NavDrawerSupport.getInstance(this, mDrawerList, mDrawerLayout);
 
         //Finally, initialize some globals
         stopType = "";
@@ -229,8 +232,6 @@ public class JourneyHome extends FragmentActivity {
         }
     }
 
-
-
     /**
      * This function gets called when the "Start Road Trip" button is pressed
      * It will begin a new Activity
@@ -282,7 +283,7 @@ public class JourneyHome extends FragmentActivity {
             return;
         }
         Intent intent = new Intent(this, JoinTrip.class);
-        //If we decide to pass values from this screen, we do that here
+        intent.putExtra("UserEmail", nav.getUserEmail());
         startActivityForResult(intent, JourneyHome.JOIN_TRIP);
     }
 
@@ -315,10 +316,11 @@ public class JourneyHome extends FragmentActivity {
                 //It worked
                 journeyStartTrip(data, true);
                 isTripActive = true;
+                Toast.makeText(this, "Successfully Created a Trip", Toast.LENGTH_LONG).show();
             }
             else {
                 //Null directions
-                System.out.println("Returned null directions from StartTrip");
+                Toast.makeText(this, "Failed to Create a Trip. Please try again", Toast.LENGTH_LONG).show();
             }
         }
         else if (requestCode == JourneyHome.JOIN_TRIP) {
@@ -326,10 +328,11 @@ public class JourneyHome extends FragmentActivity {
                 //It worked
                 journeyStartTrip(data, false);
                 isTripActive = true;
+                Toast.makeText(this, "Successfully Joined an Active Trip", Toast.LENGTH_LONG).show();
             }
             else {
-                //Didn't work
-                System.out.println("Trip not found");
+                //Didn't work\
+                Toast.makeText(this, "Failed to Join a Trip. Ensure that you entered the Host's email correctly", Toast.LENGTH_LONG).show();
             }
         }
         else if (requestCode == JourneyHome.VOICE_START) {

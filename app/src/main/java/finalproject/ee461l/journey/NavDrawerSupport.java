@@ -20,16 +20,22 @@ import java.util.ArrayList;
  * Created by kevinrosen1 on 4/2/16.
  */
 public class NavDrawerSupport {
+    private static NavDrawerSupport nav;
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
     private String userEmail;
 
-    public NavDrawerSupport(Context context, ListView list, DrawerLayout drawer) {
+    private NavDrawerSupport(Context context, ListView list, DrawerLayout drawer) {
         mDrawerList = list;
         mDrawerLayout = drawer;
         userEmail = "";
 
         navDrawer(context);
+    }
+
+    public static synchronized NavDrawerSupport getInstance(Context context, ListView list, DrawerLayout drawer) {
+        if (nav == null) nav = new NavDrawerSupport(context, list, drawer);
+        return nav;
     }
 
     public ArrayList<String> navDrawerItems(boolean login) {

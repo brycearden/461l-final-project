@@ -8,7 +8,8 @@
     <string name="title_activity_add_waypoint">Add Waypoint</string>
     <string name="waypoint">Add some Waypoint</string>
     <!--<string name="google_app_id">vertical-mapper-123021</string>-->
-    <string name="server_client_id">538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com</string>
+    <!--<string name="server_client_id">538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com</string>-->
+    <string name="server_client_id">538969000595-gh7i287c9p143fd1ageslnmj58bjg15r.apps.googleusercontent.com</string>
     <string name="use_current_loc_button">Use Current Location</string>
 
     <!-- Help screen -->

@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 
 import com.google.android.gms.location.places.Place;
@@ -30,9 +31,11 @@ import javax.net.ssl.HttpsURLConnection;
 public class BackendCreateTrip extends AsyncTask<String, Void, String> {
 
     private BackendFunctionality backend;
+    private ProgressDialog dialog;
 
-    public BackendCreateTrip() {
+    public BackendCreateTrip(JourneyHome home) {
         backend = BackendFunctionality.getInstance();
+        dialog = new ProgressDialog(home);
     }
 
     @Override
@@ -67,12 +70,14 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
                 createUser = true;
             }
             else {
-                System.out.println("User does exist");
+                //We need to make sure the user is the trip leader
+                request.disconnect();
+                request = backend.userSetIsLeader(userEmail, false);
             }
             request.disconnect();
             //If we need to create the User object, do so here
             if (createUser) {
-                request = backend.createUser(userEmail);
+                request = backend.createUser(userEmail, true);
                 request.disconnect();
             }
             //Create the trip
@@ -100,8 +105,16 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
         return result;
     }
 
+    @Override
+    protected void onPreExecute() {
+        dialog.setMessage("Please Wait...");
+        dialog.show();
+    }
+
+    @Override
     protected void onPostExecute(String result) {
         System.out.println("Returned JSON Object: " + result);
+        if (dialog.isShowing()) dialog.dismiss();
     }
 
     protected String getTripId(String result) throws JSONException {

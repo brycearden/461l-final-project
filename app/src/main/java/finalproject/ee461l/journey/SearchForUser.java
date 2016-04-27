@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 
 import org.json.JSONArray;
@@ -24,21 +25,24 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
 
     private OnTaskCompleted listener;
     private BackendFunctionality backend;
+    private ProgressDialog dialog;
     private String start;
     private String end;
 
-    public SearchForUser(OnTaskCompleted listener) {
+    public SearchForUser(OnTaskCompleted listener, JoinTrip trip) {
         this.listener = listener;
         backend = BackendFunctionality.getInstance();
+        dialog = new ProgressDialog(trip);
     }
 
     @Override
     protected String doInBackground(String... params) {
         String result = "";
-        String email = params[0]; //Only 1 parameter here
+        String targetEmail = params[0];
+        String userEmail = params[1];
         URL url = null;
         try {
-            HttpURLConnection request = backend.searchForUser(email);
+            HttpURLConnection request = backend.searchForUser(targetEmail);
             if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 System.out.println("User does not exist, response code: " + request.getResponseCode());
                 request.disconnect();
@@ -87,6 +91,26 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
                 HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                 in = new BufferedInputStream(conn.getInputStream());
                 result = backend.readStream(in);
+                conn.disconnect();
+
+                //Finally, we need to associate this user with this trip
+                request = backend.searchForUser(userEmail);
+                if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    //We need to create this user. NOTE: isleader will need to be false!
+                    request.disconnect();
+                    request = backend.createUser(userEmail, false);
+                }
+                else {
+                    //We just need to make sure that the user is not the trip leader
+                    request.disconnect();
+                    request = backend.userSetIsLeader(userEmail, false);
+                }
+                in = new BufferedInputStream(request.getInputStream());
+                System.out.println("Created User: " + backend.readStream(in));
+                request.disconnect();
+
+                request = backend.connectUserTrip(userEmail, trip.getString("key"));
+                request.disconnect();
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -98,8 +122,16 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
         return result;
     }
 
+    @Override
+    protected void onPreExecute() {
+        dialog.setMessage("Please Wait...");
+        dialog.show();
+    }
+
+    @Override
     protected void onPostExecute(String result) {
         System.out.println("Result: " + result);
+        if (dialog.isShowing()) dialog.dismiss();
         listener.onTaskCompleted(result, start, end);
     }
 

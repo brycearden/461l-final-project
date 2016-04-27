@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -45,7 +46,7 @@ public class StartTrip extends AppCompatActivity {
         setContentView(R.layout.activity_start_trip);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
@@ -132,6 +133,13 @@ public class StartTrip extends AppCompatActivity {
     private class TripRequest extends AsyncTask<Place, Void, String> {
         private String startId;
         private String endId;
+        private BackendFunctionality backend;
+        private ProgressDialog dialog;
+
+        public TripRequest() {
+            backend = BackendFunctionality.getInstance(); //Using for readStream function
+            dialog = new ProgressDialog(StartTrip.this);
+        }
 
         protected String doInBackground(Place... places) {
             Place startPlace = null;
@@ -164,7 +172,8 @@ public class StartTrip extends AppCompatActivity {
                 request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
-                result = readStream(in);
+                result = backend.readStream(in);
+                request.disconnect();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -175,6 +184,13 @@ public class StartTrip extends AppCompatActivity {
             return result;
         }
 
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Please Wait...");
+            dialog.show();
+        }
+
+        @Override
         protected void onPostExecute(String result) {
             JSONObject directions = null;
             try {
@@ -182,6 +198,8 @@ public class StartTrip extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            if (dialog.isShowing()) dialog.dismiss();
 
             Intent intent = new Intent();
             intent.putExtra("JSONDirections", result);
@@ -196,17 +214,6 @@ public class StartTrip extends AppCompatActivity {
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();
-        }
-
-        protected String readStream(InputStream in) throws IOException {
-            StringBuilder builder = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                builder.append(line);
-            }
-            in.close();
-            return builder.toString();
         }
     }
 }
