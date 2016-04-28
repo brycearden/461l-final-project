@@ -47,7 +47,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnTaskCompleted{
 
     protected JourneyHome journeyHome;
-    private static MapSupport map;
 
     //Google Maps
     protected LocationRequest mLocationRequest;
@@ -80,7 +79,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     //Constants
     public static final String DIRECTIONS_ARRAY = "finalproject.ee461l.journey.DIRECTIONS_ARRAY";
 
-    private MapSupport(JourneyHome home, FragmentManager manager, GoogleApiClient client){
+    public MapSupport(JourneyHome home, FragmentManager manager, GoogleApiClient client){
         journeyHome = home;
 
         this.client = client;
@@ -98,11 +97,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         isCaravan = false;
 
         directions = new ArrayList<String>();
-    }
-
-    public static synchronized MapSupport getInstance(JourneyHome home, FragmentManager manager, GoogleApiClient client) {
-        if (map == null) map = new MapSupport(home, manager, client);
-        return map;
     }
 
     public void setClient(GoogleApiClient client){
@@ -427,13 +421,19 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public void postTripToBackend(String userEmail) {
         System.out.println("Backend called");
-        if (startLatLng.equals("Current")) startLatLng = startLocationLatLng.toString();
+        if (startLatLng.equals("Current")) startLatLng = startLocationLatLng.toString(); //Only needs to happen here
         new BackendCreateTrip(journeyHome).execute(userEmail, startLatLng, endLatLng);
     }
 
-    public void deleteTripFromBackend(String userEmail) {
+    public void postWaypointToBackend(String userEmail) {
+        System.out.println("Backend Waypoint addition called");
+        new BackendAddWaypoint().execute(userEmail);
+    }
+
+    public void deleteTripFromBackend(String userEmail, boolean deleteTrip) {
         System.out.println("Deleting trip from backend (only if the user is the leader");
-        new BackendDeleteTrip(this, journeyHome).execute(userEmail, startLatLng, endLatLng);
+        if (!deleteTrip) journeyHome.finish();
+        else new BackendDeleteTrip(this, journeyHome).execute(userEmail, startLatLng, endLatLng);
     }
 
     @Override

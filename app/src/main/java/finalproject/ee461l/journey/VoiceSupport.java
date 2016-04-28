@@ -69,21 +69,15 @@ import java.util.Locale;
  */
 public class VoiceSupport {
 
-    private static VoiceSupport voice;
     //Text To Speech
     static boolean useTTS;
     static TextToSpeech speaker;
     JourneyHome journeyHome;
 
-    private VoiceSupport(JourneyHome journeyHome){
+    public VoiceSupport(JourneyHome journeyHome){
         //Let's also set up the TTS engine
         this.journeyHome = journeyHome;
         speaker = getInstance();
-    }
-
-    public static synchronized VoiceSupport getInstance(JourneyHome journeyHome) {
-        if (voice == null) voice = new VoiceSupport(journeyHome);
-        return voice;
     }
 
     protected TextToSpeech getInstance() {

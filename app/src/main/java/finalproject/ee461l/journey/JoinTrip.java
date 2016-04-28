@@ -2,8 +2,6 @@ package finalproject.ee461l.journey;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -31,12 +29,12 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         String email = emailView.getText().toString().toLowerCase();
         if (!email.contains("@") || !email.contains(".")) return;
         //Quite possibly a valid email. Let's go through the checks
-        new SearchForUser(this, this).execute(email, userEmail);
+        new BackendSearchForUser(this, this).execute(email, userEmail);
     }
 
     @Override
     public void onTaskCompleted(String result, String start, String end) {
-        //SearchForUser is done. lets handle this
+        //BackendSearchForUser is done. lets handle this
         Intent intent = new Intent();
         intent.putExtra("JSONDirections", result);
         intent.putExtra("StartLocLatLng", start);

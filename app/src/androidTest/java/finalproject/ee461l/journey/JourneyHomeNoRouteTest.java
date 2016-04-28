@@ -31,6 +31,12 @@ public class JourneyHomeNoRouteTest {
         tests.logInOut(true);
     }
 
+    @After
+    public void teardown() throws InterruptedException {
+        tests.device.pressBack();
+        Thread.sleep(500);
+    }
+
     @Test
     public void testLogIn() throws UiObjectNotFoundException {
         //Now let's verify that login worked
@@ -67,6 +73,7 @@ public class JourneyHomeNoRouteTest {
         UiObject startText = tests.device.findObject(new UiSelector()
                 .text("Start Road Trip"));
         Assert.assertTrue(startText.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -76,6 +83,7 @@ public class JourneyHomeNoRouteTest {
         UiObject startText = tests.device.findObject(new UiSelector()
                 .text("Join Road Trip"));
         Assert.assertTrue(startText.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -87,5 +95,6 @@ public class JourneyHomeNoRouteTest {
         UiObject trip = tests.device.findObject(new UiSelector()
                 .text("Start Road Trip"));
         Assert.assertTrue(trip.exists());
+        tests.device.pressBack();
     }
 }

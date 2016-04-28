@@ -21,7 +21,7 @@ import javax.net.ssl.HttpsURLConnection;
 /**
  * Created by kevinrosen1 on 4/25/16.
  */
-public class SearchForUser extends AsyncTask<String, Void, String> {
+public class BackendSearchForUser extends AsyncTask<String, Void, String> {
 
     private OnTaskCompleted listener;
     private BackendFunctionality backend;
@@ -29,7 +29,7 @@ public class SearchForUser extends AsyncTask<String, Void, String> {
     private String start;
     private String end;
 
-    public SearchForUser(OnTaskCompleted listener, JoinTrip trip) {
+    public BackendSearchForUser(OnTaskCompleted listener, JoinTrip trip) {
         this.listener = listener;
         backend = BackendFunctionality.getInstance();
         dialog = new ProgressDialog(trip);

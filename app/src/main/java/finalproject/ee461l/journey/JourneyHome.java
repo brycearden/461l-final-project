@@ -76,6 +76,7 @@ public class JourneyHome extends FragmentActivity {
     protected NavDrawerSupport nav;
 
     private boolean isTripActive;
+    private boolean isLeader;
 
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
@@ -130,8 +131,8 @@ public class JourneyHome extends FragmentActivity {
                 .requestEmail()
                 .build();
 
-        map = MapSupport.getInstance(this, manager, client);
-        voice = VoiceSupport.getInstance(this);
+        map = new MapSupport(this, manager, client);
+        voice = new VoiceSupport(this);
         // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this)
@@ -151,7 +152,7 @@ public class JourneyHome extends FragmentActivity {
         mDrawerList.setOnItemClickListener(new NavClickListener());
         //Rest of setup
         //GeneralSupport.navDrawer(mDrawerList, mDrawerLayout, this);
-        nav = NavDrawerSupport.getInstance(this, mDrawerList, mDrawerLayout);
+        nav = new NavDrawerSupport(this, mDrawerList, mDrawerLayout);
 
         //Finally, initialize some globals
         stopType = "";
@@ -159,6 +160,7 @@ public class JourneyHome extends FragmentActivity {
         distanceFromRoute = 0;
         isSignedIn = false;
         isTripActive = false;
+        isLeader = false;
     }
 
     @Override
@@ -314,8 +316,9 @@ public class JourneyHome extends FragmentActivity {
             // From Start Handler
             if (resultCode == RESULT_OK) {
                 //It worked
-                journeyStartTrip(data, true);
                 isTripActive = true;
+                isLeader = true;
+                journeyStartTrip(data);
                 Toast.makeText(this, "Successfully Created a Trip", Toast.LENGTH_LONG).show();
             }
             else {
@@ -326,8 +329,9 @@ public class JourneyHome extends FragmentActivity {
         else if (requestCode == JourneyHome.JOIN_TRIP) {
             if (resultCode == RESULT_OK) {
                 //It worked
-                journeyStartTrip(data, false);
                 isTripActive = true;
+                isLeader = false;
+                journeyStartTrip(data);
                 Toast.makeText(this, "Successfully Joined an Active Trip", Toast.LENGTH_LONG).show();
             }
             else {
@@ -371,7 +375,7 @@ public class JourneyHome extends FragmentActivity {
         }
     }
 
-    public void journeyStartTrip(Intent data, boolean createTrip) {
+    public void journeyStartTrip(Intent data) {
         //We will start by changing the buttons on screen
         adjustView();
         map.setIds(data);
@@ -412,7 +416,7 @@ public class JourneyHome extends FragmentActivity {
         map.adjustMapZoom(data);
 
         //If we are caravaning the trip, we need to post to the backend
-        if (map.getCaravanTrip() && createTrip) map.postTripToBackend(nav.getUserEmail());
+        if (map.getCaravanTrip() && isLeader) map.postTripToBackend(nav.getUserEmail());
     }
 
     public void journeyStartWaypointTrip(Intent data) {
@@ -462,6 +466,9 @@ public class JourneyHome extends FragmentActivity {
 
         //Finally we will adjust the zoom to the appropriate level
         map.adjustMapZoom(data);
+
+        //Note: Need waypoint lat/lng coordinates for this!
+        if (map.getCaravanTrip() && isLeader) map.postWaypointToBackend(nav.getUserEmail());
     }
 
     public void voiceComm(String helpText, int resultId) {
@@ -548,7 +555,8 @@ public class JourneyHome extends FragmentActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                if (map.getCaravanTrip()) map.deleteTripFromBackend(nav.getUserEmail());
+                                if (map.getCaravanTrip()) map.deleteTripFromBackend(nav.getUserEmail(), true);
+                                else map.deleteTripFromBackend(nav.getUserEmail(), false);
                             }
 
                         })
