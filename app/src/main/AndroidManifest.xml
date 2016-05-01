@@ -102,6 +102,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="finalproject.ee461l.journey.JourneyHome"/>
         </activity>
+        <activity
+            android:name=".DisplayWaypointChoices"
+            android:label="select waypoint"
+            android:parentActivityName=".Waypoint">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.Waypoint"/>
+        </activity>
     </application>
-
 </manifest>

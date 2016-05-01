@@ -24,9 +24,35 @@
         android:layout_height="wrap_content"
         android:text="@string/waypoint"
         android:onClick="addWaypoint"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/new_waypoint"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="153dp" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/add_waypt"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="83dp" />
+
+    <Button
+        android:id="@+id/find_places"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Find nearby places"
+        android:onClick="findNearbyPlaces"
+        android:layout_below="@+id/spinner"
         android:layout_alignParentStart="true" />
+
+    <EditText
+        android:id="@+id/distance"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/distance_hint"
+        android:inputType="text"
+        android:layout_alignBottom="@+id/find_places"
+        android:layout_toEndOf="@+id/find_places" />
 
 
 </RelativeLayout>

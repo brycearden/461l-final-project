@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -77,6 +78,16 @@ public class JourneyHome extends FragmentActivity {
 
     private boolean isTripActive;
     private boolean isLeader;
+
+    //hack for nested activity
+    protected static String startLocationId;
+    protected static String endLocationId;
+    protected static String startLatLng;
+    protected static String endLatLng;
+    protected static String result;
+    protected static boolean dataReady;
+    protected static boolean dataCorrect;
+    protected static boolean usingHack;
 
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
@@ -234,6 +245,8 @@ public class JourneyHome extends FragmentActivity {
         }
     }
 
+
+
     /**
      * This function gets called when the "Start Road Trip" button is pressed
      * It will begin a new Activity
@@ -366,12 +379,30 @@ public class JourneyHome extends FragmentActivity {
             }
         }
         else if (requestCode == JourneyHome.ADD_WAYPOINT) {
-            if (resultCode == RESULT_OK) {
-                System.out.println(data.getStringExtra("JSONDirections"));
-                map.mMap.clear();
-                data.putExtra("isCaravanTrip", map.getCaravanTrip());
-                data.putExtra("numWaypoints", map.numWaypoints+1);
-                journeyStartWaypointTrip(data);
+            if (!usingHack) {
+                if (resultCode == RESULT_OK) {
+                    System.out.println(data.getStringExtra("JSONDirections"));
+                    map.mMap.clear();
+                    data.putExtra("isCaravanTrip", map.getCaravanTrip());
+                    data.putExtra("numWaypoints", map.numWaypoints+1);
+                    journeyStartWaypointTrip(data);
+                }
+            } else {
+                usingHack = false;
+                while(!dataReady){}
+                dataReady = false;
+                if (dataCorrect) {
+                    Intent intent = new Intent();
+                    intent.putExtra("JSONDirections",result);
+                    intent.putExtra("StartLocationId",startLocationId);
+                    intent.putExtra("EndLocationId",endLocationId);
+                    intent.putExtra("StartLocLatLng",startLatLng);
+                    intent.putExtra("EndLocLatLng",endLatLng);
+                    data.putExtra("isCaravanTrip", map.getCaravanTrip());
+                    data.putExtra("numWaypoints", map.numWaypoints+1);
+                    map.mMap.clear();
+                    journeyStartWaypointTrip(intent);
+                }
             }
         }
         else if (requestCode == GOOGLE_ACCT_SIGNIN) {
