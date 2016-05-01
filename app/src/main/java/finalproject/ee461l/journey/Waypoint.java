@@ -159,6 +159,9 @@ public class Waypoint extends AppCompatActivity {
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
 
+            //Finally add waypoint lat/lng
+            intent.putExtra("WaypointLatLng", waypoint.getLatLng().toString());
+
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();

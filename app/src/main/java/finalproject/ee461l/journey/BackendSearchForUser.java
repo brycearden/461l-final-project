@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -26,6 +27,7 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
     private OnTaskCompleted listener;
     private BackendFunctionality backend;
     private ProgressDialog dialog;
+    private JoinTrip joinTrip;
     private String start;
     private String end;
 
@@ -33,6 +35,7 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
         this.listener = listener;
         backend = BackendFunctionality.getInstance();
         dialog = new ProgressDialog(trip);
+        joinTrip = trip;
     }
 
     @Override
@@ -55,7 +58,6 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
 
                 JSONObject user = new JSONObject(json);
                 JSONArray tripIds = user.getJSONArray("trip_ids");
-                System.out.println("Trip IDs: " + tripIds);
                 for (int i = 0; i < tripIds.length(); i++) {
                     //We need to see if this trip is active or not
                     request = backend.searchForTrip(tripIds.getString(i));
@@ -80,14 +82,58 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
                 }
 
                 if (result.equals("")) return result;
-                //We have a valid Trip JSON Object. We need to get the actual Route JSON from Google
+                //We have a valid Trip JSON Object. We need to get any waypoints that are here
                 JSONObject trip = new JSONObject(result);
+                String waypointUrl = "";
+                JSONArray waypoints = backend.getWaypoints(trip);
+                if (waypoints != null && waypoints.length() != 0) {
+                    //We have at least 1 waypoint. let's get that information
+                    joinTrip.isWaypoint = true;
+                    for (int i = 0; i < waypoints.length(); i++) {
+                        if (waypointUrl == "") waypointUrl = "&waypoints=";
+
+                        JSONObject waypoint = waypoints.getJSONObject(i);
+                        String lat = waypoint.getString("lat");
+                        String lon = waypoint.getString("lon");
+                        waypointUrl += (lat + "%2C");
+                        waypointUrl += lon;
+                        if (i != (waypoints.length() - 1)) waypointUrl += "%7C"; //All lat/lngs except the last one end w/ this
+                        /*
+                        request = backend.getWaypoint(waypoints.getString(i));
+                        if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                            System.out.println("Waypoint does not exist, response code: " + request.getResponseCode());
+                            request.disconnect();
+                            continue;
+                        }
+                        //Valid ID. Let's add to string
+                        request.disconnect();
+                        in = new BufferedInputStream(request.getInputStream());
+                        json = backend.readStream(in); //This is a JSONObject. Let's get the trip ids
+                        request.disconnect();
+                        System.out.println("Waypoint: " + json);
+
+                        if (waypointUrl == "") waypointUrl = "&waypoints=";
+
+                        JSONObject way = new JSONObject(json);
+                        String lat = way.getString("lat");
+                        String lon = way.getString("lon");
+                        waypointUrl += (lat + "%2C");
+                        waypointUrl += lon;
+                        if (i != (waypoints.length() - 1)) waypointUrl += "%7C"; //All lat/lngs except the last one end w/ this
+                        */
+                    }
+                }
+                System.out.println("WaypointURL: " + waypointUrl);
+
+
+                //We need to get the actual Route JSON from Google
                 start = trip.getString("startloc");
                 end = trip.getString("endloc");
                 String[] coords = getLatLng(start, end);
                 url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin="
                         + coords[0] + "," + coords[1] + "&destination="
-                        + coords[2] + "," + coords[3] + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                        + coords[2] + "," + coords[3]
+                        + waypointUrl + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
                 HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                 in = new BufferedInputStream(conn.getInputStream());
                 result = backend.readStream(in);
@@ -106,7 +152,6 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
                     request = backend.userSetIsLeader(userEmail, false);
                 }
                 in = new BufferedInputStream(request.getInputStream());
-                System.out.println("Created User: " + backend.readStream(in));
                 request.disconnect();
 
                 request = backend.connectUserTrip(userEmail, trip.getString("key"));

@@ -425,9 +425,9 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         new BackendCreateTrip(journeyHome).execute(userEmail, startLatLng, endLatLng);
     }
 
-    public void postWaypointToBackend(String userEmail) {
+    public void postWaypointToBackend(String userEmail, String waypointLatLng) {
         System.out.println("Backend Waypoint addition called");
-        new BackendAddWaypoint().execute(userEmail);
+        new BackendAddWaypoint().execute(userEmail, waypointLatLng);
     }
 
     public void deleteTripFromBackend(String userEmail, boolean deleteTrip) {

@@ -10,6 +10,7 @@ import android.widget.EditText;
 public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
 
     private String userEmail;
+    protected boolean isWaypoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +23,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
         userEmail = intent.getStringExtra("UserEmail");
+        isWaypoint = false;
     }
 
     public void searchForUser(View view) {
@@ -44,6 +46,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         intent.putExtra("EndLocationId", "N/A");
         //Attach caravan info
         intent.putExtra("isCaravanTrip", true);
+        if (isWaypoint) intent.putExtra("isWaypoint", true);
         if (result != null && result != "") setResult(RESULT_OK, intent);
         else setResult(RESULT_CANCELED, intent);
         finish();

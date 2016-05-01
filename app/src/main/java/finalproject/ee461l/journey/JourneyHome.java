@@ -331,7 +331,9 @@ public class JourneyHome extends FragmentActivity {
                 //It worked
                 isTripActive = true;
                 isLeader = false;
-                journeyStartTrip(data);
+                boolean isWaypoint = data.getBooleanExtra("isWaypoint", false);
+                if (!isWaypoint) journeyStartTrip(data);
+                else journeyStartWaypointTrip(data);
                 Toast.makeText(this, "Successfully Joined an Active Trip", Toast.LENGTH_LONG).show();
             }
             else {
@@ -468,7 +470,7 @@ public class JourneyHome extends FragmentActivity {
         map.adjustMapZoom(data);
 
         //Note: Need waypoint lat/lng coordinates for this!
-        if (map.getCaravanTrip() && isLeader) map.postWaypointToBackend(nav.getUserEmail());
+        if (map.getCaravanTrip() && isLeader) map.postWaypointToBackend(nav.getUserEmail(), data.getStringExtra("WaypointLatLng"));
     }
 
     public void voiceComm(String helpText, int resultId) {

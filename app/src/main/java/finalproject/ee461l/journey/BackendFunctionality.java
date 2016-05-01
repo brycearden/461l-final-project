@@ -1,8 +1,10 @@
 package finalproject.ee461l.journey;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * Created by kevinrosen1 on 4/26/16.
@@ -41,6 +44,36 @@ public class BackendFunctionality {
         }
         in.close();
         return builder.toString();
+    }
+
+    protected JSONArray getWaypoints(JSONObject trip) throws JSONException, IOException {
+        HttpURLConnection request = getListOfWaypoints(trip.getString("key"));
+        if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            System.out.println("Could not get list of Waypoints, response code: " + request.getResponseCode());
+            request.disconnect();
+            return null;
+        }
+        //We have a list of waypoints. Let's get them all
+        InputStream in = new BufferedInputStream(request.getInputStream());
+        String json = readStream(in);
+        request.disconnect();
+
+        //Returns a list of waypoint objects. Let's get them
+        JSONObject list = new JSONObject(json);
+        JSONArray waypointIds = list.getJSONArray("waypoints");
+        return waypointIds;
+    }
+
+    protected HttpURLConnection getListOfWaypoints(String tripId) throws IOException {
+        URL url = new URL("http://journey-1236.appspot.com/api/trip/waypoint/list/" + tripId);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        return request;
+    }
+
+    protected HttpURLConnection getWaypoint(String waypointId) throws IOException {
+        URL url = new URL("http://journey-1236.appspot.com/api/waypoint/" + waypointId);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        return request;
     }
 
     protected HttpURLConnection searchForUser(String email) throws IOException {
@@ -120,11 +153,83 @@ public class BackendFunctionality {
         return request;
     }
 
-    protected HttpURLConnection deleteTrip(String tripId) throws IOException {
+    protected HttpURLConnection createWaypoint(String latlng) throws IOException, JSONException {
+        URL url = new URL("http://journey-1236.appspot.com/api/waypoint/new");
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.setRequestMethod("POST");
+        request.setDoOutput(true);
+        request.setDoInput(true);
+        request.setRequestProperty("Content-Type", "application/json");
+        request.setChunkedStreamingMode(0);
+        request.connect();
+
+        String waypointString = latlng.substring(latlng.indexOf(" ")+2, latlng.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+        String[] waypoint = waypointString.split(","); //"xx.xxxx", "-xx.xxxx"
+
+        JSONObject trip = new JSONObject();
+        trip.put("lat", waypoint[0]);
+        trip.put("lon", waypoint[1]);
+        byte[] data = trip.toString().getBytes("UTF-8");
+
+        DataOutputStream output = new DataOutputStream(request.getOutputStream());
+        writeStream(output, data);
+        output.close();
+
+        return request;
+    }
+
+    protected HttpURLConnection deleteWaypoint(String waypointId) throws IOException {
+        URL url = new URL("http://journey-1236.appspot.com/api/waypoint/" + waypointId);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.setRequestMethod("DELETE");
+        request.connect();
+        return request;
+    }
+
+    protected HttpURLConnection deleteTrip(String tripId) throws IOException, JSONException {
+        //We need to deal w/ waypoints first
+        JSONArray waypoints = getWaypoints(new JSONObject(tripId));
+        if (waypoints != null && waypoints.length() != 0) {
+            for (int i = 0; i < waypoints.length(); i++) {
+                //Need to disassociate w/ trip and delete
+                HttpURLConnection request = disconnectWaypointTrip(tripId, waypoints.getString(i));
+                if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    System.out.println("Failed to disconnect a Waypoint from trip, response code: " + request.getResponseCode());
+                }
+                request.disconnect();
+
+                request = deleteWaypoint(waypoints.getString(i));
+                if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    System.out.println("Failed to delete a Waypoint, response code: " + request.getResponseCode());
+                }
+                request.disconnect();
+            }
+        }
         URL url = new URL("http://journey-1236.appspot.com/api/trip/" + tripId);
         HttpURLConnection request = (HttpURLConnection) url.openConnection();
         request.setRequestMethod("DELETE");
         request.connect();
+        return request;
+    }
+
+    protected HttpURLConnection connectWaypointTrip(String tripId, String waypointId) throws IOException, JSONException {
+        URL url = new URL("http://journey-1236.appspot.com/api/trip/waypoint/" + tripId);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.setRequestMethod("PUT");
+        request.setDoOutput(true);
+        request.setDoInput(true);
+        request.setRequestProperty("Content-Type", "application/json");
+        request.setChunkedStreamingMode(0);
+        request.connect();
+
+        JSONObject trip = new JSONObject();
+        trip.put("waypoint_id", waypointId);
+        byte[] data = trip.toString().getBytes("UTF-8");
+
+        DataOutputStream output = new DataOutputStream(request.getOutputStream());
+        writeStream(output, data);
+        output.close();
+
         return request;
     }
 
@@ -140,6 +245,27 @@ public class BackendFunctionality {
 
         JSONObject trip = new JSONObject();
         trip.put("trip_id", tripId);
+        byte[] data = trip.toString().getBytes("UTF-8");
+
+        DataOutputStream output = new DataOutputStream(request.getOutputStream());
+        writeStream(output, data);
+        output.close();
+
+        return request;
+    }
+
+    protected HttpURLConnection disconnectWaypointTrip(String tripId, String waypointId) throws IOException, JSONException {
+        URL url = new URL("http://journey-1236.appspot.com/api/trip/waypoint/remove/" + tripId);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.setRequestMethod("PUT");
+        request.setDoOutput(true);
+        request.setDoInput(true);
+        request.setRequestProperty("Content-Type", "application/json");
+        request.setChunkedStreamingMode(0);
+        request.connect();
+
+        JSONObject trip = new JSONObject();
+        trip.put("waypoint_id", waypointId);
         byte[] data = trip.toString().getBytes("UTF-8");
 
         DataOutputStream output = new DataOutputStream(request.getOutputStream());
