@@ -3,6 +3,7 @@ package finalproject.ee461l.journey;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -32,6 +33,7 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -73,6 +75,9 @@ public class JourneyHome extends FragmentActivity {
     protected VoiceSupport voice;
     protected MapSupport map;
     protected NavDrawerSupport nav;
+
+    private boolean isTripActive;
+    private boolean isLeader;
 
     //hack for nested activity
     protected static String startLocationId;
@@ -117,6 +122,7 @@ public class JourneyHome extends FragmentActivity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     GoogleApiClient client;
+    GoogleSignInOptions options;
 
 
     @Override
@@ -132,7 +138,7 @@ public class JourneyHome extends FragmentActivity {
         FragmentManager manager = getFragmentManager();
 
         //Configure Google sign-in options
-        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
@@ -164,6 +170,8 @@ public class JourneyHome extends FragmentActivity {
         timeToStop = 0;
         distanceFromRoute = 0;
         isSignedIn = false;
+        isTripActive = false;
+        isLeader = false;
     }
 
     @Override
@@ -290,8 +298,8 @@ public class JourneyHome extends FragmentActivity {
             return;
         }
         Intent intent = new Intent(this, JoinTrip.class);
-        //If we decide to pass values from this screen, we do that here
-        startActivity(intent);
+        intent.putExtra("UserEmail", nav.getUserEmail());
+        startActivityForResult(intent, JourneyHome.JOIN_TRIP);
     }
 
     public void stopHandler(View view) {
@@ -321,11 +329,29 @@ public class JourneyHome extends FragmentActivity {
             // From Start Handler
             if (resultCode == RESULT_OK) {
                 //It worked
+                isTripActive = true;
+                isLeader = true;
                 journeyStartTrip(data);
+                Toast.makeText(this, "Successfully Created a Trip", Toast.LENGTH_LONG).show();
             }
             else {
                 //Null directions
-                System.out.println("Returned null directions from StartTrip");
+                Toast.makeText(this, "Failed to Create a Trip. Please try again", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if (requestCode == JourneyHome.JOIN_TRIP) {
+            if (resultCode == RESULT_OK) {
+                //It worked
+                isTripActive = true;
+                isLeader = false;
+                boolean isWaypoint = data.getBooleanExtra("isWaypoint", false);
+                if (!isWaypoint) journeyStartTrip(data);
+                else journeyStartWaypointTrip(data);
+                Toast.makeText(this, "Successfully Joined an Active Trip", Toast.LENGTH_LONG).show();
+            }
+            else {
+                //Didn't work\
+                Toast.makeText(this, "Failed to Join a Trip. Ensure that you entered the Host's email correctly", Toast.LENGTH_LONG).show();
             }
         }
         else if (requestCode == JourneyHome.VOICE_START) {
@@ -378,26 +404,13 @@ public class JourneyHome extends FragmentActivity {
         else if (requestCode == GOOGLE_ACCT_SIGNIN) {
             isSignedIn = nav.signIn(data, this);
         }
-        else if (requestCode == 15) {
-            while(!dataReady){}
-            dataReady = false;
-            if (dataCorrect) {
-                Intent intent = new Intent();
-                intent.putExtra("JSONDirections",result);
-                intent.putExtra("StartLocationId",startLocationId);
-                intent.putExtra("EndLocationId",endLocationId);
-                intent.putExtra("StartLocLatLng",startLatLng);
-                intent.putExtra("EndLocLatLng",endLatLng);
-                map.mMap.clear();
-                journeyStartWaypointTrip(intent);
-            }
-        }
     }
 
     public void journeyStartTrip(Intent data) {
         //We will start by changing the buttons on screen
         adjustView();
         map.setIds(data);
+        map.setCaravanTrip(data.getBooleanExtra("isCaravanTrip", false));
 
         //Now we will deal with the route directions
         JSONObject directions = null;
@@ -432,6 +445,9 @@ public class JourneyHome extends FragmentActivity {
 
         //Finally we will adjust the zoom to the appropriate level
         map.adjustMapZoom(data);
+
+        //If we are caravaning the trip, we need to post to the backend
+        if (map.getCaravanTrip() && isLeader) map.postTripToBackend(nav.getUserEmail());
     }
 
     public void journeyStartWaypointTrip(Intent data) {
@@ -481,6 +497,9 @@ public class JourneyHome extends FragmentActivity {
 
         //Finally we will adjust the zoom to the appropriate level
         map.adjustMapZoom(data);
+
+        //Note: Need waypoint lat/lng coordinates for this!
+        if (map.getCaravanTrip() && isLeader) map.postWaypointToBackend(nav.getUserEmail(), data.getStringExtra("WaypointLatLng"));
     }
 
     public void voiceComm(String helpText, int resultId) {
@@ -559,7 +578,23 @@ public class JourneyHome extends FragmentActivity {
             }
         }
         else {
-            super.onBackPressed();
+            if (isTripActive) {
+                new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("End Trip")
+                        .setMessage("Are you sure you want to exit this trip? If you created this trip it will be deleted.")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (map.getCaravanTrip()) map.deleteTripFromBackend(nav.getUserEmail(), true);
+                                else map.deleteTripFromBackend(nav.getUserEmail(), false);
+                            }
+
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+            else super.onBackPressed();
         }
     }
 

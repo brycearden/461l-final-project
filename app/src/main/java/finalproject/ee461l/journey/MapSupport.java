@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * These include Location Updates to calculations for Map Routes
  */
 public class MapSupport implements com.google.android.gms.location.LocationListener,
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnTaskCompleted{
 
     protected JourneyHome journeyHome;
 
@@ -58,8 +58,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     private ArrayList<LatLng> route;
 
-
-
     private String startLatLng;
     private String endLatLng;
 
@@ -69,6 +67,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     private LatLng startLocationLatLng;
     private String endLocationId;
     private LatLng endLocationLatLng;
+    //Caravaning
+    private boolean isCaravan;
 
     //Fragments
     private MapFragment mapFragment;
@@ -93,6 +93,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
         startLocationId = null;
         endLocationId = null;
+
+        isCaravan = false;
 
         directions = new ArrayList<String>();
     }
@@ -233,6 +235,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     //      this GitHub repository: https://github.com/googlemaps/android-maps-utils, in the decode() function
     public ArrayList<LatLng> convertPolyline(JSONArray steps) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
+        System.out.println("Length of steps: " + steps.length());
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
             String instruction = "";
@@ -243,6 +246,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             }
             catch (JSONException e) {
                 //JSON Error
+                System.out.println("JSON Error");
             }
             //Let's first store the instruction
             directions.add(instruction);
@@ -330,6 +334,10 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public String getEndLatLng() { return endLatLng; }
 
+    public boolean getCaravanTrip() { return isCaravan; }
+
+    public void setCaravanTrip(boolean caravan) { isCaravan = caravan; }
+
     public void adjustMapZoom(Intent data) {
         //First, let's get the latitude and longitude of the Start and End locations
         String startData = data.getExtras().getString("StartLocLatLng");
@@ -409,5 +417,29 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         Intent intent = new Intent(journeyHome, DisplayDirections.class);
         intent.putStringArrayListExtra(DIRECTIONS_ARRAY, directions);
         journeyHome.startActivity(intent);
+    }
+
+    public void postTripToBackend(String userEmail) {
+        System.out.println("Backend called");
+        if (startLatLng.equals("Current")) startLatLng = startLocationLatLng.toString(); //Only needs to happen here
+        new BackendCreateTrip(journeyHome).execute(userEmail, startLatLng, endLatLng);
+    }
+
+    public void postWaypointToBackend(String userEmail, String waypointLatLng) {
+        System.out.println("Backend Waypoint addition called");
+        new BackendAddWaypoint().execute(userEmail, waypointLatLng);
+    }
+
+    public void deleteTripFromBackend(String userEmail, boolean deleteTrip) {
+        System.out.println("Deleting trip from backend (only if the user is the leader");
+        if (!deleteTrip) journeyHome.finish();
+        else new BackendDeleteTrip(this, journeyHome).execute(userEmail, startLatLng, endLatLng);
+    }
+
+    @Override
+    public void onTaskCompleted(String json, String start, String end) {
+        //Called once trip has been successfully deleted
+        System.out.println("Deleted");
+        journeyHome.finish();
     }
 }

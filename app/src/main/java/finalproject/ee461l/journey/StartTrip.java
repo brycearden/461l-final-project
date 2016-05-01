@@ -1,5 +1,6 @@
 package finalproject.ee461l.journey;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -45,6 +46,7 @@ public class StartTrip extends AppCompatActivity {
         setContentView(R.layout.activity_start_trip);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
@@ -131,11 +133,19 @@ public class StartTrip extends AppCompatActivity {
     private class TripRequest extends AsyncTask<Place, Void, String> {
         private String startId;
         private String endId;
+        private BackendFunctionality backend;
+        private ProgressDialog dialog;
+
+        public TripRequest() {
+            backend = BackendFunctionality.getInstance(); //Using for readStream function
+            dialog = new ProgressDialog(StartTrip.this);
+        }
 
         protected String doInBackground(Place... places) {
             Place startPlace = null;
             Place endPlace = null;
             String result = "";
+            HttpsURLConnection request = null;
 
             int currentPlace = 0;
             for (int i = 0; i < 2; currentPlace++, i++) {
@@ -159,18 +169,28 @@ public class StartTrip extends AppCompatActivity {
                     startId = startPlace.getId();
                 }
                 endId = endPlace.getId();
-                HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
+                request = (HttpsURLConnection) url.openConnection();
                 String responseMessage = request.getResponseMessage();
                 InputStream in = new BufferedInputStream(request.getInputStream());
-                result = readStream(in);
+                result = backend.readStream(in);
+                request.disconnect();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                request.disconnect();
             }
             return result;
         }
 
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Please Wait...");
+            dialog.show();
+        }
+
+        @Override
         protected void onPostExecute(String result) {
             JSONObject directions = null;
             try {
@@ -178,6 +198,8 @@ public class StartTrip extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            if (dialog.isShowing()) dialog.dismiss();
 
             Intent intent = new Intent();
             intent.putExtra("JSONDirections", result);
@@ -187,20 +209,11 @@ public class StartTrip extends AppCompatActivity {
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+            //Attach caravan info
+            intent.putExtra("isCaravanTrip", caravan);
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
             finish();
-        }
-
-        protected String readStream(InputStream in) throws IOException {
-            StringBuilder builder = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                builder.append(line);
-            }
-            in.close();
-            return builder.toString();
         }
     }
 }

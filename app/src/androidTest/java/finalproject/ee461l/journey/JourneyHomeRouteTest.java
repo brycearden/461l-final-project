@@ -4,6 +4,7 @@ import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.UiSelector;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +32,12 @@ public class JourneyHomeRouteTest {
         tests.endLocation();
         tests.beginTrip();
         Thread.sleep(2000); //Sleep enough so that the fragment can be stable before testing
+    }
+
+    @After
+    public void teardown() throws InterruptedException {
+        tests.device.pressBack();
+        Thread.sleep(500);
     }
 
     @Test
@@ -61,12 +68,12 @@ public class JourneyHomeRouteTest {
         UiObject start = tests.device.findObject(new UiSelector()
                 .description("Current Location"));
         if (!start.exists()) start = tests.device.findObject(new UiSelector()
-                .description("Start Location"));
+                .description("Start Location. "));
         Assert.assertTrue(start.exists()); //Fails for some reason?
 
         //End pin
         UiObject end = tests.device.findObject(new UiSelector()
-                .description("End Location"));
+                .description("End Location. "));
         Assert.assertTrue(end.exists());
     }
 
@@ -88,6 +95,7 @@ public class JourneyHomeRouteTest {
                         .text("Route Directions"))
         );
         Assert.assertTrue(dir.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -99,6 +107,7 @@ public class JourneyHomeRouteTest {
         UiObject trip = tests.device.findObject(new UiSelector()
                 .text("Add Stop to Route"));
         Assert.assertTrue(trip.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -117,6 +126,7 @@ public class JourneyHomeRouteTest {
         Assert.assertTrue(prompt.exists());
 
         //Would test the conversation, but UIAutomator is incapable of running voice tests
+        tests.device.pressBack();
     }
 
     @Test

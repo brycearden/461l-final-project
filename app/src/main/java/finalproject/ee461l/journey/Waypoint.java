@@ -225,7 +225,7 @@ public class Waypoint extends AppCompatActivity {
                             finished = true;
                         }
                         //1000000000
-                        for (int i = 0; i <= 100000; i += 1) {}
+                        for (int i = 0; i <= 1000000000; i += 1) {}
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -361,6 +361,9 @@ public class Waypoint extends AppCompatActivity {
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+
+            //Finally add waypoint lat/lng
+            intent.putExtra("WaypointLatLng", waypoint.getLatLng().toString());
 
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_id": "composite-theme-107602",
-    "project_number": "192450056870",
+    "project_id": "vertical-mapper-123021",
+    "project_number": "538969000595",
     "name": "My Project"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:192450056870:android:ff3a1bc9fd4b11c6",
+        "mobilesdk_app_id": "1:538969000595:android:ff3a1bc9fd4b11c6",
         "client_id": "android:finalproject.ee461l.journey",
         "client_type": 1,
         "android_client_info": {
@@ -17,15 +17,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "192450056870-b01fi7sc8nd65163i0l6fpta0625rgfs.apps.googleusercontent.com",
+          "client_id": "538969000595-gh7i287c9p143fd1ageslnmj58bjg15r.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "finalproject.ee461l.journey",
-            "certificate_hash": "7504F0A33E0B87436F313A9A92563A8F7CB540C4"
+            "certificate_hash": "3962375743C3F6815CDD7231904D5D4BF9D2C263"
           }
         },
         {
-          "client_id": "192450056870-53gosfl31eeil3fb9h67vpi1chjevabq.apps.googleusercontent.com",
+          "client_id": "538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

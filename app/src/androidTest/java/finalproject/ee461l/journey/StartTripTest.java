@@ -4,6 +4,7 @@ import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.UiSelector;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +34,12 @@ public class StartTripTest {
         tests.startTripActivity();
     }
 
+    @After
+    public void teardown() throws InterruptedException {
+        tests.device.pressBack();
+        Thread.sleep(500);
+    }
+
     @Test
     public void useCurrentLocation() throws UiObjectNotFoundException {
         tests.currentLocation();
@@ -41,6 +48,7 @@ public class StartTripTest {
         UiObject text = tests.device.findObject(new UiSelector()
                 .resourceId("finalproject.ee461l.journey:id/place_autocomplete_search_input"));
         Assert.assertTrue(text.getText().equals("Current Location"));
+        tests.device.pressBack();
     }
 
     @Test
@@ -51,6 +59,7 @@ public class StartTripTest {
         UiObject startTrip = tests.device.findObject(new UiSelector()
                 .text("Start Road Trip"));
         Assert.assertTrue(startTrip.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -62,6 +71,7 @@ public class StartTripTest {
         UiObject startTrip = tests.device.findObject(new UiSelector()
                 .text("Start Road Trip"));
         Assert.assertTrue(startTrip.exists());
+        tests.device.pressBack();
     }
 
     @Test
@@ -105,5 +115,14 @@ public class StartTripTest {
                 .resourceId("finalproject.ee461l.journey:id/start_trip")
                 .text("Add Stop to Route"));
         Assert.assertTrue(stopTripButton.exists());
+
+        //Need to close app and delete the trip
+        tests.device.pressBack();
+        UiObject exitButton = tests.device.findObject(new UiSelector()
+                .text("Yes")
+                .resourceId("android:id/button1"));
+        Assert.assertTrue(exitButton.exists());
+        exitButton.click();
+        Thread.sleep(5000);
     }
 }
