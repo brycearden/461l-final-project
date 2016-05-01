@@ -85,7 +85,7 @@ public class NavDrawerSupport {
         }
         else {
             //Failure
-            System.out.println("Failed to sign user in");
+            System.out.println("Failed to sign user in, status:" + result.getStatus());
             return false;
         }
     }
