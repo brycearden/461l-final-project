@@ -46,8 +46,22 @@ public class BackendFunctionality {
         return builder.toString();
     }
 
-    protected JSONArray getWaypoints(JSONObject trip) throws JSONException, IOException {
-        HttpURLConnection request = getListOfWaypoints(trip.getString("key"));
+    protected String[] getLatLng(String start, String end) { //Format: "lat/lng: (xx.xxxx,-xx.xxxx)"
+        String[] strings = new String[4];
+        String startString = start.substring(start.indexOf(" ")+2, start.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+        String[] startLoc = startString.split(","); //"xx.xxxx", "-xx.xxxx"
+        strings[0] = startLoc[0];
+        strings[1] = startLoc[1];
+
+        String endString = end.substring(end.indexOf(" ")+2, end.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+        String[] endLoc = endString.split(","); //"xx.xxxx", "-xx.xxxx"
+        strings[2] = endLoc[0];
+        strings[3] = endLoc[1];
+        return strings;
+    }
+
+    protected JSONArray getWaypoints(String tripId) throws JSONException, IOException {
+        HttpURLConnection request = getListOfWaypoints(tripId);
         if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
             System.out.println("Could not get list of Waypoints, response code: " + request.getResponseCode());
             request.disconnect();
@@ -106,6 +120,9 @@ public class BackendFunctionality {
         writeStream(output, data);
         output.close();
 
+        InputStream in = new BufferedInputStream(request.getInputStream());
+        System.out.println("Isleader: " + readStream(in));
+
         return request;
     }
 
@@ -126,6 +143,9 @@ public class BackendFunctionality {
         DataOutputStream output = new DataOutputStream(request.getOutputStream());
         writeStream(output, data);
         output.close();
+
+        InputStream in = new BufferedInputStream(request.getInputStream());
+        System.out.println(readStream(in));
 
         return request;
     }
@@ -188,17 +208,19 @@ public class BackendFunctionality {
 
     protected HttpURLConnection deleteTrip(String tripId) throws IOException, JSONException {
         //We need to deal w/ waypoints first
-        JSONArray waypoints = getWaypoints(new JSONObject(tripId));
+        JSONArray waypoints = getWaypoints(tripId);
         if (waypoints != null && waypoints.length() != 0) {
             for (int i = 0; i < waypoints.length(); i++) {
                 //Need to disassociate w/ trip and delete
-                HttpURLConnection request = disconnectWaypointTrip(tripId, waypoints.getString(i));
+                System.out.println(waypoints.getString(i));
+                JSONObject waypoint = new JSONObject(waypoints.getString(i));
+                HttpURLConnection request = disconnectWaypointTrip(tripId, waypoint.getString("key"));
                 if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     System.out.println("Failed to disconnect a Waypoint from trip, response code: " + request.getResponseCode());
                 }
                 request.disconnect();
 
-                request = deleteWaypoint(waypoints.getString(i));
+                request = deleteWaypoint(waypoint.getString("key"));
                 if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     System.out.println("Failed to delete a Waypoint, response code: " + request.getResponseCode());
                 }

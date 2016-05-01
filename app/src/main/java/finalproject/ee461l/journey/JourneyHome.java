@@ -369,6 +369,8 @@ public class JourneyHome extends FragmentActivity {
             if (resultCode == RESULT_OK) {
                 System.out.println(data.getStringExtra("JSONDirections"));
                 map.mMap.clear();
+                data.putExtra("isCaravanTrip", map.getCaravanTrip());
+                data.putExtra("numWaypoints", map.numWaypoints+1);
                 journeyStartWaypointTrip(data);
             }
         }
@@ -425,6 +427,8 @@ public class JourneyHome extends FragmentActivity {
         //We will start by changing the buttons on screen
         adjustView();
         map.setIds(data);
+        map.setCaravanTrip(data.getBooleanExtra("isCaravanTrip", false));
+        map.numWaypoints = data.getIntExtra("numWaypoints", 0);
 
         int numWaypoints = 1;
 

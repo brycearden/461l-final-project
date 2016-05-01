@@ -1,8 +1,6 @@
 package finalproject.ee461l.journey;
 
-import android.*;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,6 +11,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -22,7 +21,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -44,7 +42,8 @@ import java.util.ArrayList;
  * These include Location Updates to calculations for Map Routes
  */
 public class MapSupport implements com.google.android.gms.location.LocationListener,
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnTaskCompleted{
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnTaskCompleted,
+        OnUpdated {
 
     protected JourneyHome journeyHome;
 
@@ -69,6 +68,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     private LatLng endLocationLatLng;
     //Caravaning
     private boolean isCaravan;
+    protected int numWaypoints;
+    private boolean updatingWaypoints;
 
     //Fragments
     private MapFragment mapFragment;
@@ -95,6 +96,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         endLocationId = null;
 
         isCaravan = false;
+        numWaypoints = 0;
+        updatingWaypoints = false;
 
         directions = new ArrayList<String>();
     }
@@ -179,6 +182,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public void onLocationChanged(Location location) {
         updateLocation(location);
+        if (isCaravan && !updatingWaypoints) new BackendCheckForUpdate(this, numWaypoints).execute(journeyHome.nav.getUserEmail());
     }
 
     public void setupMap(FragmentManager manager, MapFragment mapFragment, JourneyHome home) {
@@ -209,14 +213,17 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             }
         }
         else {
+            updatingWaypoints = true;
             numLegs += 1;
             //At least 1 waypoint to worry about
             try {
                 JSONArray routes = directions.getJSONArray("routes");
+                System.out.println("Routes: " + routes + ", numroutes: " + routes.length());
 
                 //Need to get the legs[]
                 JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
                 JSONArray legs = firstRoute.getJSONArray("legs");
+                System.out.println("Legs: " + legs + ", numlegs" + legs.length());
 
                 //Need to get the steps[] now
                 JSONObject leg = legs.optJSONObject(numLegs); //Once we add waypoints there will be more legs
@@ -224,7 +231,9 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             }
             catch (JSONException e) {
                 //JSON Error
+                e.printStackTrace();
             }
+            updatingWaypoints = false;
         }
 
         //Finally, let's add a marker for start and end locations (removing current loc marker)
@@ -432,6 +441,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public void deleteTripFromBackend(String userEmail, boolean deleteTrip) {
         System.out.println("Deleting trip from backend (only if the user is the leader");
+        System.out.println("Delete trip: " + deleteTrip);
         if (!deleteTrip) journeyHome.finish();
         else new BackendDeleteTrip(this, journeyHome).execute(userEmail, startLatLng, endLatLng);
     }
@@ -441,5 +451,20 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         //Called once trip has been successfully deleted
         System.out.println("Deleted");
         journeyHome.finish();
+    }
+
+    @Override
+    public void onUpdated(int numWaypoints, String json) {
+        //This is called from the updater when we have new waypoints added
+        if (numWaypoints > this.numWaypoints) {
+            //Sanity check. This means we need to do an update
+            Toast.makeText(journeyHome, "New Route Waypoint Added", Toast.LENGTH_LONG).show();
+            mMap.clear();
+            Intent intent = new Intent();
+            intent.putExtra("JSONDirections", json);
+            intent.putExtra("StartLocLatLng", startLatLng);
+            intent.putExtra("EndLocLatLng", endLatLng);
+            journeyHome.journeyStartWaypointTrip(intent);
+        }
     }
 }

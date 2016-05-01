@@ -11,6 +11,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
 
     private String userEmail;
     protected boolean isWaypoint;
+    protected int numWaypoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +25,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         Intent intent = getIntent();
         userEmail = intent.getStringExtra("UserEmail");
         isWaypoint = false;
+        numWaypoints = 0;
     }
 
     public void searchForUser(View view) {
@@ -46,6 +48,7 @@ public class JoinTrip extends AppCompatActivity implements OnTaskCompleted {
         intent.putExtra("EndLocationId", "N/A");
         //Attach caravan info
         intent.putExtra("isCaravanTrip", true);
+        intent.putExtra("numWaypoints", numWaypoints);
         if (isWaypoint) intent.putExtra("isWaypoint", true);
         if (result != null && result != "") setResult(RESULT_OK, intent);
         else setResult(RESULT_CANCELED, intent);

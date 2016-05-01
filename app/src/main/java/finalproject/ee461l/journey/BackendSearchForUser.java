@@ -85,10 +85,12 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
                 //We have a valid Trip JSON Object. We need to get any waypoints that are here
                 JSONObject trip = new JSONObject(result);
                 String waypointUrl = "";
-                JSONArray waypoints = backend.getWaypoints(trip);
+                JSONArray waypoints = backend.getWaypoints(trip.getString("key"));
                 if (waypoints != null && waypoints.length() != 0) {
                     //We have at least 1 waypoint. let's get that information
                     joinTrip.isWaypoint = true;
+                    joinTrip.numWaypoints = waypoints.length();
+                    System.out.println("Found " + waypoints.length() + " waypoints on this trip");
                     for (int i = 0; i < waypoints.length(); i++) {
                         if (waypointUrl == "") waypointUrl = "&waypoints=";
 
@@ -98,38 +100,13 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
                         waypointUrl += (lat + "%2C");
                         waypointUrl += lon;
                         if (i != (waypoints.length() - 1)) waypointUrl += "%7C"; //All lat/lngs except the last one end w/ this
-                        /*
-                        request = backend.getWaypoint(waypoints.getString(i));
-                        if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                            System.out.println("Waypoint does not exist, response code: " + request.getResponseCode());
-                            request.disconnect();
-                            continue;
-                        }
-                        //Valid ID. Let's add to string
-                        request.disconnect();
-                        in = new BufferedInputStream(request.getInputStream());
-                        json = backend.readStream(in); //This is a JSONObject. Let's get the trip ids
-                        request.disconnect();
-                        System.out.println("Waypoint: " + json);
-
-                        if (waypointUrl == "") waypointUrl = "&waypoints=";
-
-                        JSONObject way = new JSONObject(json);
-                        String lat = way.getString("lat");
-                        String lon = way.getString("lon");
-                        waypointUrl += (lat + "%2C");
-                        waypointUrl += lon;
-                        if (i != (waypoints.length() - 1)) waypointUrl += "%7C"; //All lat/lngs except the last one end w/ this
-                        */
                     }
                 }
-                System.out.println("WaypointURL: " + waypointUrl);
-
 
                 //We need to get the actual Route JSON from Google
                 start = trip.getString("startloc");
                 end = trip.getString("endloc");
-                String[] coords = getLatLng(start, end);
+                String[] coords = backend.getLatLng(start, end);
                 url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin="
                         + coords[0] + "," + coords[1] + "&destination="
                         + coords[2] + "," + coords[3]
@@ -155,6 +132,9 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
                 request.disconnect();
 
                 request = backend.connectUserTrip(userEmail, trip.getString("key"));
+                in = new BufferedInputStream(request.getInputStream());
+                String test = backend.readStream(in);
+                System.out.println("Result of association: " + test);
                 request.disconnect();
             }
         } catch (MalformedURLException e) {
@@ -178,19 +158,5 @@ public class BackendSearchForUser extends AsyncTask<String, Void, String> {
         System.out.println("Result: " + result);
         if (dialog.isShowing()) dialog.dismiss();
         listener.onTaskCompleted(result, start, end);
-    }
-
-    protected String[] getLatLng(String start, String end) { //Format: "lat/lng: (xx.xxxx,-xx.xxxx)"
-        String[] strings = new String[4];
-        String startString = start.substring(start.indexOf(" ")+2, start.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
-        String[] startLoc = startString.split(","); //"xx.xxxx", "-xx.xxxx"
-        strings[0] = startLoc[0];
-        strings[1] = startLoc[1];
-
-        String endString = end.substring(end.indexOf(" ")+2, end.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
-        String[] endLoc = endString.split(","); //"xx.xxxx", "-xx.xxxx"
-        strings[2] = endLoc[0];
-        strings[3] = endLoc[1];
-        return strings;
     }
 }

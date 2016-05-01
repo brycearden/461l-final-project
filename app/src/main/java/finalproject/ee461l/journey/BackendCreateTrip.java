@@ -67,18 +67,22 @@ public class BackendCreateTrip extends AsyncTask<String, Void, String> {
             if (request.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 System.out.println("User does not exist, response code: " + request.getResponseCode());
                 //Create User necessary
-                createUser = true;
+                request.disconnect();
+                request = backend.createUser(userEmail, true);
             }
             else {
                 //We need to make sure the user is the trip leader
                 request.disconnect();
-                request = backend.userSetIsLeader(userEmail, false);
+                request = backend.userSetIsLeader(userEmail, true);
             }
             request.disconnect();
             //If we need to create the User object, do so here
             if (createUser) {
-                request = backend.createUser(userEmail, true);
-                request.disconnect();
+                /*
+                InputStream in = new BufferedInputStream(request.getInputStream());
+                result = backend.readStream(in);
+                System.out.println("Result of Creating User: " + result);
+                */
             }
             //Create the trip
             request = backend.createTrip(startPlace, endPlace);
