@@ -62,10 +62,10 @@ public class DisplayWaypointChoices extends ListActivity{
     protected void onListItemClick(ListView l, View v, int position, long id) {
         String item = (String) getListAdapter().getItem(position);
         Toast.makeText(this, item + " selected", Toast.LENGTH_LONG).show();
-        Intent intent = new Intent();
+        //Intent intent = new Intent();
         String waypointID = placesID[position];
-        intent.putExtra("choice", position);
-        setResult(RESULT_OK, intent);
+        //intent.putExtra("choice", position);
+        //setResult(RESULT_OK, intent);
         new TripRequest().execute(startLocId, endLocId, waypointID);
     }
 
@@ -142,6 +142,8 @@ public class DisplayWaypointChoices extends ListActivity{
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+
+            intent.putExtra("WaypointID", waypointId);
 
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);

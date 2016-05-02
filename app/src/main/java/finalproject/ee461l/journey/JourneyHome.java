@@ -396,12 +396,7 @@ public class JourneyHome extends FragmentActivity {
                 while(!dataReady){}
                 dataReady = false;
                 if (dataCorrect) {
-                    Intent intent = new Intent();
-                    intent.putExtra("JSONDirections",result);
-                    intent.putExtra("StartLocationId",startLocationId);
-                    intent.putExtra("EndLocationId",endLocationId);
-                    intent.putExtra("StartLocLatLng",startLatLng);
-                    intent.putExtra("EndLocLatLng",endLatLng);
+                    Intent intent = new Intent(data);
                     intent.putExtra("isCaravanTrip", map.getCaravanTrip());
                     intent.putExtra("numWaypoints", map.numWaypoints+1);
                     map.mMap.clear();
