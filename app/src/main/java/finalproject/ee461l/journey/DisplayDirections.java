@@ -34,7 +34,6 @@ public class DisplayDirections extends AppCompatActivity {
         for (int i = 0; i < directions.size(); i++) {
             String step = directions.get(i);
             TextView view = new TextView(this);
-            view.setId(BASE_ID + i);
             view.setText(Html.fromHtml(step));
             view.setTextSize(2, 18);
             view.setPadding(50, 5, 0, 5);
