@@ -7,7 +7,8 @@
     <string name="title_activity_join_trip">Join Road Trip</string>
     <string name="title_activity_add_waypoint">Add Waypoint</string>
     <string name="waypoint">Add some Waypoint</string>
-    <string name="distance_hint"><b>range(optional)</b></string>
+    <string name="distance_hint"><b>range(miles)</b></string>
+    <string name="along_route_hint"><b>miles down route(optional)</b></string>
     <!--<string name="google_app_id">vertical-mapper-123021</string>-->
     <!--<string name="server_client_id">538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com</string>-->
     <string name="server_client_id">538969000595-gh7i287c9p143fd1ageslnmj58bjg15r.apps.googleusercontent.com</string>

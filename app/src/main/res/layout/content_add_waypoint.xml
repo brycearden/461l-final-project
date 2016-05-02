@@ -24,9 +24,9 @@
         android:layout_height="wrap_content"
         android:text="@string/waypoint"
         android:onClick="addWaypoint"
+        android:layout_marginTop="106dp"
         android:layout_below="@+id/new_waypoint"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="153dp" />
+        android:layout_alignParentStart="true" />
 
     <Spinner
         android:id="@+id/spinner"
@@ -34,7 +34,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/add_waypt"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="83dp" />
+        android:layout_marginTop="83dp"
+        android:layout_alignEnd="@+id/find_places" />
 
     <Button
         android:id="@+id/find_places"
@@ -51,8 +52,17 @@
         android:layout_height="wrap_content"
         android:hint="@string/distance_hint"
         android:inputType="text"
-        android:layout_alignBottom="@+id/find_places"
-        android:layout_toEndOf="@+id/find_places" />
+        android:layout_above="@+id/alongRoute"
+        android:layout_toEndOf="@+id/spinner" />
+
+    <EditText
+        android:id="@+id/alongRoute"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/along_route_hint"
+        android:inputType="text"
+        android:layout_below="@+id/spinner"
+        android:layout_toEndOf="@+id/spinner" />
 
 
 </RelativeLayout>

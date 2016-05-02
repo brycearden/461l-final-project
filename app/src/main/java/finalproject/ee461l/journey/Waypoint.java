@@ -17,6 +17,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +31,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -43,6 +46,10 @@ public class Waypoint extends AppCompatActivity {
     private String endLatLong;
     private String startLatLong;
     private Place waypoint;
+
+    private String prevRoute;
+    private boolean useCurrentSpot;
+    private String checkSpot;
 
     //used to store range of place search
     private int miles;
@@ -98,6 +105,8 @@ public class Waypoint extends AppCompatActivity {
         startLatLong = intent.getExtras().getString(JourneyHome.START_LATLNG);
         endLatLong = intent.getExtras().getString(JourneyHome.END_LATLNG);
 
+        prevRoute = intent.getStringExtra("JSONDirection");
+
         //Let's set up the Places Listener
         waypointFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.new_waypoint);
@@ -131,12 +140,28 @@ public class Waypoint extends AppCompatActivity {
         if (resource != null) {
             EditText mEdit   = (EditText)findViewById(R.id.distance);
             String value = mEdit.getText().toString();
+            mEdit   = (EditText)findViewById(R.id.alongRoute);
+            String alongRoute = mEdit.getText().toString();
             if (!value.equals("")) {
                 miles = Integer.parseInt(value);
             } else {
                 miles = 5;
             }
             meters = miles * 1609;
+            if (!alongRoute.equals("")) {
+                useCurrentSpot = false;
+                int distance = Integer.parseInt(alongRoute);
+                distance *= 1609;
+                JSONObject directions = null;
+                try {
+                    directions = new JSONObject(prevRoute);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                parse(directions,distance);
+            } else {
+                useCurrentSpot = true;
+            }
             new FindPlace(this).execute();
         }
     }
@@ -163,7 +188,11 @@ public class Waypoint extends AppCompatActivity {
                 while (!finished) {
                     String googlePlacesUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
                     if (numResponses == 0) {
-                        googlePlacesUrl += "location=" + currentLocation;
+                        if (!useCurrentSpot) {
+                            googlePlacesUrl += "location=" + checkSpot;
+                        } else {
+                            googlePlacesUrl += "location=" + currentLocation;
+                        }
                         googlePlacesUrl += "&radius=" + meters;
                         googlePlacesUrl += "&types=" + resource;
                     } else {
@@ -421,5 +450,91 @@ public class Waypoint extends AppCompatActivity {
         public void onNothingSelected(AdapterView<?> parent) {
             resource = null;
         }
+    }
+
+    /** Receives a JSONObject and returns a list of lists containing latitude and longitude */
+    public void parse(JSONObject jObject, int distance){
+
+        JSONArray jRoutes;
+        JSONArray jLegs;
+        JSONArray jSteps;
+        int tempDist;
+        int tempDist2;
+        int stepDist;
+
+        try {
+
+            jRoutes = jObject.getJSONArray("routes");
+
+            /** Traversing all routes */
+            for(int i=0;i<jRoutes.length();i++){
+                jLegs = ( (JSONObject)jRoutes.get(i)).getJSONArray("legs");
+
+                /** Traversing all legs */
+                for(int j=0;j<jLegs.length();j++){
+                    jSteps = ( (JSONObject)jLegs.get(j) ).getJSONArray("steps");
+                    int dist = (int)((JSONObject)((JSONObject)jLegs.get(j)).get("distance")).get("value");
+                    System.out.println("Distance: "+dist);
+                    if (dist > distance) {
+                        /** Traversing all steps of polyline */
+                        for (int k = 0; k < jSteps.length(); k++) {
+                            int newDistVal = (int) ((JSONObject) ((JSONObject) jSteps.get(k)).get("distance")).get("value");
+                            if (newDistVal > distance) {
+                                String polyline = "";
+                                polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
+                                decodePoly(polyline, distance, newDistVal);
+                                return;
+                            } else {
+                                distance -= newDistVal;
+                            }
+
+                        }
+                    } else {
+                        distance -= dist;
+                    }
+                }
+            }
+
+            //line=mMap.addPolyline(lineOptions);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }catch (Exception e){
+        }
+    }
+
+    private void decodePoly(String encoded, int newDistVal, int newDistVal2) {
+
+        List<LatLng> poly = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+        int eachStep = newDistVal2/len;
+        int numSteps = newDistVal/eachStep;
+        String latLng = null;
+        while (index < len && numSteps!=0) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            latLng = (((double) lat / 1E5) + "," +
+                    ((double) lng / 1E5));
+            numSteps -= 1;
+        }
+        checkSpot = latLng;
     }
 }
