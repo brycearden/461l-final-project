@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -86,6 +87,8 @@ public class Waypoint extends AppCompatActivity {
         spinner.setAdapter(adapter);
 
         spinner.setOnItemSelectedListener(new SpinnerActivity());
+
+        spinner.setGravity(Gravity.CENTER_HORIZONTAL);
 
         //Let's get the intent from JourneyHome
         Intent intent = getIntent();
@@ -328,15 +331,6 @@ public class Waypoint extends AppCompatActivity {
         if (requestCode == 15) {
             if (resultCode == RESULT_OK) {
                 //It worked
-                /*
-                String waypointID = null;
-                int choice = (int) data.getIntExtra("choice", 0);
-                try {
-                    waypointID = (String) nearbyPlaces[choice].get("id");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                */
                 String waypointID = data.getStringExtra("WaypointID");
                 //Given the place ID, we need to get the latitude and longitude
                 new PlaceSearch(this, data).execute(waypointID);
