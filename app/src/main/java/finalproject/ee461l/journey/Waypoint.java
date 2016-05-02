@@ -208,16 +208,11 @@ public class Waypoint extends AppCompatActivity {
                     }
                     googlePlacesUrl += "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8";
 
-                    URL url = null;
-                    url = new URL(googlePlacesUrl);
+                    URL url = new URL(googlePlacesUrl);
 
-
-                    InputStream inputStream = null;
-                    HttpURLConnection httpURLConnection = null;
-
-                    httpURLConnection = (HttpURLConnection) url.openConnection();
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                     httpURLConnection.connect();
-                    inputStream = httpURLConnection.getInputStream();
+                    InputStream inputStream = httpURLConnection.getInputStream();
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                     StringBuffer stringBuffer = new StringBuffer();
                     String line = "";

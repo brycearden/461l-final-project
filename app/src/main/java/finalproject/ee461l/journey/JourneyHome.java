@@ -91,6 +91,7 @@ public class JourneyHome extends FragmentActivity {
     public static final int VOICE_DISTANCE = 5;
     public static final int VOICE_CALC = 4;
     public static final int ADD_WAYPOINT = 6;
+    public static final int VOICE_ADD_WAYPOINT = 7;
 
     //Permissions Constants
     public static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 10;
@@ -357,7 +358,7 @@ public class JourneyHome extends FragmentActivity {
         else if (requestCode == JourneyHome.VOICE_REQUEST) {
             //User requested a type of stop
             if (resultCode == RESULT_OK) {
-                stopType = voice.voiceStopRequested(data);
+                voice.voiceStopRequested(data);
             }
         }
         else if (requestCode == JourneyHome.VOICE_TIME) {
@@ -374,7 +375,6 @@ public class JourneyHome extends FragmentActivity {
         }
         else if (requestCode == JourneyHome.ADD_WAYPOINT) {
             if (resultCode == RESULT_OK) {
-                System.out.println(data.getStringExtra("JSONDirections"));
                 map.mMap.clear();
                 data.putExtra("isCaravanTrip", map.getCaravanTrip());
                 data.putExtra("numWaypoints", map.numWaypoints+1);
@@ -383,6 +383,15 @@ public class JourneyHome extends FragmentActivity {
         }
         else if (requestCode == GOOGLE_ACCT_SIGNIN) {
             isSignedIn = nav.signIn(data, this);
+        }
+        else if (requestCode == JourneyHome.VOICE_ADD_WAYPOINT) {
+            if (resultCode == RESULT_OK) {
+                System.out.println(data.getStringExtra("JSONDirections"));
+                map.mMap.clear();
+                data.putExtra("isCaravanTrip", map.getCaravanTrip());
+                data.putExtra("numWaypoints", map.numWaypoints+1);
+                journeyStartWaypointTrip(data);
+            }
         }
     }
 
@@ -411,7 +420,7 @@ public class JourneyHome extends FragmentActivity {
 
             //Need to convert polyline points into legitimate points
             //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-            List<LatLng> leg = map.convertPolyline(steps);
+            List<LatLng> leg = map.convertPolyline(steps, true);
 
             //Next we need to create a PolylineOptions object and give it all of the points in the step
             PolylineOptions options = new PolylineOptions();
@@ -463,8 +472,8 @@ public class JourneyHome extends FragmentActivity {
 
             //Need to convert polyline points into legitimate points
             //Reverse engineering this: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
-            List<LatLng> leg1 = map.convertPolyline(steps1);
-            List<LatLng> leg2 = map.convertPolyline(steps2);
+            List<LatLng> leg1 = map.convertPolyline(steps1, true);
+            List<LatLng> leg2 = map.convertPolyline(steps2, false);
 
             //Next we need to create a PolylineOptions object and give it all of the points in the step
             PolylineOptions options = new PolylineOptions();

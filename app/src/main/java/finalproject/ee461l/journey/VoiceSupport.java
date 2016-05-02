@@ -5,6 +5,7 @@ import android.os.Build;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.app.Activity;
+import android.speech.tts.UtteranceProgressListener;
 import android.view.View;
 
 import android.Manifest;
@@ -86,13 +87,68 @@ public class VoiceSupport {
             @Override
             public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
-                    //Failed to set up TTS engine
                     speaker.setLanguage(Locale.US);
+                    //Set up a listener to listen for completed speech
+                    speaker.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            System.out.println("Completed Speech: " + utteranceId);
+                            switch (utteranceId) {
+                                case "stopType":
+                                    journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
+                                    break;
+                                case "cancelStop":
+                                    journeyHome.stopType = "";
+                                    break;
+                                case "timeRequest":
+                                    journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                                    break;
+                                case "distance":
+                                    journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                                    break;
+                                case "calculating":
+                                    getWaypoints();
+                                    break;
+                                case "repeatTime":
+                                    journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                                    break;
+                                case "help":
+                                    break;
+                                case "help2":
+                                    journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
+                                    break;
+                                case "help3":
+                                    journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
+                                    break;
+                                case "help4":
+                                    journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                                    break;
+                            }
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                        }
+                    });
                 } else {
+                    //Failed to set up TTS engine
                     useTTS = false;
                 }
             }
         });
+    }
+
+    public static void tts(String phrase, String id) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null, id);
+        }
+        else {
+            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null);
+        }
     }
 
     public void startVoiceRecog(Intent data) {
@@ -112,8 +168,6 @@ public class VoiceSupport {
                 || phrase.contains("make stop")) {
             //The user is asking to request a stop, so we need to handle appropriately
             VoiceSupport.tts("Would you like to stop for food, gas, sight-seeing, or other? Say 'cancel' to exit", "stopType");
-            while (speaker.isSpeaking()) {}
-            journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
         }
         else {
             //The user is not requesting a stop
@@ -121,50 +175,37 @@ public class VoiceSupport {
         }
     }
 
-    public String voiceStopRequested(Intent data) {
+    public void voiceStopRequested(Intent data) {
         List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
         String phrase = results.get(0);
         String stopType;
         phrase = phrase.toLowerCase();
         if (phrase.contains("food")) {
-            stopType = "food";
+            journeyHome.stopType = "food";
         }
         else if (phrase.contains("gas")) {
-            stopType = "gas";
+            journeyHome.stopType = "gas";
         }
         else if (phrase.contains("sightseeing") || phrase.contains("sights")) {
-            stopType = "sights";
+            journeyHome.stopType = "sights";
         }
         else if (phrase.contains("other")) {
-            stopType = "other";
+            journeyHome.stopType = "other";
         }
         else if (phrase.contains("cancel")) {
             VoiceSupport.tts("Cancelling stop addition...", "cancelStop");
-            return new String();
+            return;
         }
         else {
             VoiceSupport.tts("I'm sorry, please try again. Would you like to stop for food, gas, sight-seeing, or other? " +
                     "Say 'cancel' to exit", "help2");
-            while (speaker.isSpeaking()) {}
-            journeyHome.voiceComm("Choices: Food, Gas, Sight-seeing, Other", JourneyHome.VOICE_REQUEST);
-            return new String();
+            return;
         }
 
         //Go to next step of process
-        VoiceSupport.tts("When would you like to stop? Either say a time or 'Within blank minutes'", "timeRequest");
-        while (speaker.isSpeaking()) {}
-        journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
-
-        return stopType;
-    }
-
-    public static void tts(String phrase, String id) {
-        if (Build.VERSION.SDK_INT >= 21) {
-            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null, id);
-        }
-        else {
-            speaker.speak(phrase, TextToSpeech.QUEUE_FLUSH, null);
-        }
+        //VoiceSupport.tts("When would you like to stop? Either say a time or 'Within blank minutes'", "timeRequest");
+        VoiceSupport.tts("How far off your route are you willing to go?", "distance");
+        return;
     }
 
     public int voiceStopTime(Intent data) {
@@ -185,8 +226,6 @@ public class VoiceSupport {
             if (timeToStop <= 0) {
                 VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
                         "Either say a time or 'Within blank minutes'", "help3");
-                while (speaker.isSpeaking()) {}
-                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
                 return timeToStop;
             }
             System.out.println("Calculated time to stop: " + timeToStop);
@@ -203,8 +242,6 @@ public class VoiceSupport {
             if (timeToStop <= 0) {
                 VoiceSupport.tts("I'm sorry, the time you have asked for has already passed. Please try again. " +
                         "Either say a time or 'Within blank minutes'", "help3");
-                while (speaker.isSpeaking()) {}
-                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
                 return timeToStop;
             }
             System.out.println("Calculated time to stop: " + timeToStop);
@@ -215,29 +252,22 @@ public class VoiceSupport {
                 //There was an issue with parsing an integer
                 VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
                         "Either say a time or 'Within blank minutes'", "help3");
-                while (speaker.isSpeaking()) {}
-                journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
                 return timeToStop;
             }
             System.out.println("Calculated time to stop: " + timeToStop);
         }
         else {
             VoiceSupport.tts("I'm sorry, please try again. Either say a time or 'Within blank minutes'", "repeatTime");
-            while (speaker.isSpeaking()) {}
-            journeyHome.voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
             return journeyHome.timeToStop;
         }
 
         //This means we now have a time. If distance is not defined, we will ask. Otherwise, move to calculation
         if (journeyHome.distanceFromRoute == 0) {
             VoiceSupport.tts("How far off your route are you willing to go?", "distance");
-            while (speaker.isSpeaking()) {}
             journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
         }
         else {
             VoiceSupport.tts("Finding stops, please wait...", "calculating");
-            while (speaker.isSpeaking()) {}
-            //voiceComm("Say either a time (xx:xx) or 'Within __ minutes'", JourneyHome.VOICE_TIME);
         }
         return timeToStop;
     }
@@ -254,12 +284,9 @@ public class VoiceSupport {
             if (calcDistance == -1) {
                 //There was an issue
                 VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
-                        "How far off your route are you willing to go?", "help3");
-                while (speaker.isSpeaking()) {}
-                journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                        "How far off your route are you willing to go?", "help4");
                 return -1;
             }
-
             //We need to convert into meters
             distanceFromRoute = (int) (calcDistance * 1609);
         }
@@ -270,24 +297,19 @@ public class VoiceSupport {
             if (calcDistance == -1) {
                 //There was an issue
                 VoiceSupport.tts("I'm sorry, there was an issue processing your request. Please try again. " +
-                        "How far off your route are you willing to go?", "help3");
-                while (speaker.isSpeaking()) {}
-                journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
+                        "How far off your route are you willing to go?", "help4");
                 return -1;
             }
-
             //Convert to meters
             distanceFromRoute = (int) (calcDistance * 1000);
         }
         else {
             VoiceSupport.tts("I'm sorry, please try again. How far off your route are you willing to go?", "help4");
-            while (speaker.isSpeaking()) {}
-            journeyHome.voiceComm("Distance in miles or kilometers", JourneyHome.VOICE_DISTANCE);
             return -1;
         }
-
         //Now we go to calculations
         System.out.println("Distance: " + distanceFromRoute);
+        VoiceSupport.tts("Finding stops, please wait...", "calculating");
         return distanceFromRoute;
     }
 
@@ -443,5 +465,14 @@ public class VoiceSupport {
                 break;
         }
         return hour;
+    }
+
+    public void getWaypoints() {
+        journeyHome.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new VoiceFindWaypoints(journeyHome).execute();
+            }
+        });
     }
 }

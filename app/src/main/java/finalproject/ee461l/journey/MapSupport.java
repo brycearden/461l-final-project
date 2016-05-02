@@ -245,10 +245,10 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     //Note: This function was written on our own, but a few pieces of the polyline decryption were cited from
     //      this GitHub repository: https://github.com/googlemaps/android-maps-utils, in the decode() function
-    public ArrayList<LatLng> convertPolyline(JSONArray steps) {
+    public ArrayList<LatLng> convertPolyline(JSONArray steps, boolean firstTime) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
         System.out.println("Length of steps: " + steps.length());
-        directions.clear();
+        if (firstTime) directions.clear();
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
             String instruction = "";
