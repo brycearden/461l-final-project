@@ -398,8 +398,8 @@ public class JourneyHome extends FragmentActivity {
                     intent.putExtra("EndLocationId",endLocationId);
                     intent.putExtra("StartLocLatLng",startLatLng);
                     intent.putExtra("EndLocLatLng",endLatLng);
-                    data.putExtra("isCaravanTrip", map.getCaravanTrip());
-                    data.putExtra("numWaypoints", map.numWaypoints+1);
+                    intent.putExtra("isCaravanTrip", map.getCaravanTrip());
+                    intent.putExtra("numWaypoints", map.numWaypoints+1);
                     map.mMap.clear();
                     journeyStartWaypointTrip(intent);
                 }

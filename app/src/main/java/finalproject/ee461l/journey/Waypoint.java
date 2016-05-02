@@ -1,6 +1,7 @@
 package finalproject.ee461l.journey;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -136,39 +137,18 @@ public class Waypoint extends AppCompatActivity {
                 miles = 5;
             }
             meters = miles * 1609;
-            new findPlace().execute();
-            while (!ready) {
-            }
-            ready = false;
-            if (nearbyPlaces != null) {
-                Intent displayPlaces = new Intent(this, DisplayWaypointChoices.class);
-                String[] names = new String[nearbyPlaces.length];
-                String[] namesID = new String[nearbyPlaces.length];
-                try {
-                    for (int i = 0; i < nearbyPlaces.length; i += 1) {
-                        names[i] = nearbyPlaces[i].getString("name");
-                        namesID[i] = nearbyPlaces[i].getString("place_id");
-                    }
-                    displayPlaces.putExtra("places", names);
-                    displayPlaces.putExtra("placesID", namesID);
-                    displayPlaces.putExtra("StartLocLatLng", startLatLong);
-                    displayPlaces.putExtra("EndLocLatLng", endLatLong);
-
-                    //Also add start/end place ids to intent
-                    displayPlaces.putExtra("StartLocationId", startLocId);
-                    displayPlaces.putExtra("EndLocationId", endLocId);
-                    JourneyHome.usingHack = true;
-                    startActivityForResult(displayPlaces, 15);
-                    finish();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
+            new FindPlace(this).execute();
         }
     }
-    private class findPlace extends AsyncTask<String, Void, String> {
+    private class FindPlace extends AsyncTask<String, Void, String> {
         String location;
+        private ProgressDialog dialog;
+        private Waypoint activity;
+
+        public FindPlace(Waypoint obj) {
+            dialog = new ProgressDialog(Waypoint.this);
+            activity = obj;
+        }
 
         protected String doInBackground(String... strings) {
             String httpData = "";
@@ -262,12 +242,47 @@ public class Waypoint extends AppCompatActivity {
             return httpData;
         }
 
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Finding Waypoints, Please Wait...");
+            dialog.show();
+        }
+
+        @Override
         protected void onPostExecute(String result) {
+            if (dialog.isShowing()) dialog.dismiss();
+
             JSONObject places = null;
             try {
                 places = new JSONObject(result);
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+
+            if (nearbyPlaces != null) {
+                Intent displayPlaces = new Intent(activity, DisplayWaypointChoices.class);
+                String[] names = new String[nearbyPlaces.length];
+                String[] namesID = new String[nearbyPlaces.length];
+                try {
+                    for (int i = 0; i < nearbyPlaces.length; i += 1) {
+                        names[i] = nearbyPlaces[i].getString("name");
+                        namesID[i] = nearbyPlaces[i].getString("place_id");
+                    }
+                    displayPlaces.putExtra("places", names);
+                    displayPlaces.putExtra("placesID", namesID);
+                    displayPlaces.putExtra("StartLocLatLng", startLatLong);
+                    displayPlaces.putExtra("EndLocLatLng", endLatLong);
+
+                    //Also add start/end place ids to intent
+                    displayPlaces.putExtra("StartLocationId", startLocId);
+                    displayPlaces.putExtra("EndLocationId", endLocId);
+                    JourneyHome.usingHack = true;
+                    startActivityForResult(displayPlaces, 15);
+                    finish();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
             finish();
         }
@@ -293,8 +308,6 @@ public class Waypoint extends AppCompatActivity {
             }
         }
     }
-
-
 
     public void addWaypoint(View view) {
         System.out.println("made it");
