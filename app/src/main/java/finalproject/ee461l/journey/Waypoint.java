@@ -333,6 +333,10 @@ public class Waypoint extends AppCompatActivity {
         System.out.println("onActivityResult");
         if (requestCode == 15) {
             if (resultCode == RESULT_OK) {
+                String waypointID = data.getStringExtra("WaypointID");
+                //Given the place ID, we need to get the latitude and longitude
+                new PlaceSearch(this, data).execute(waypointID);
+                //new TripRequest().execute(startLocId, endLocId, waypointID);
                 Intent intent = new Intent(data);
                 setResult(RESULT_OK, intent);
                 finish();
