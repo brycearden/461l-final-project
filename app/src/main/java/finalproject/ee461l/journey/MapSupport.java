@@ -464,6 +464,8 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             intent.putExtra("JSONDirections", json);
             intent.putExtra("StartLocLatLng", startLatLng);
             intent.putExtra("EndLocLatLng", endLatLng);
+            intent.putExtra("isCaravanTrip", getCaravanTrip());
+            intent.putExtra("numWaypoints", numWaypoints);
             journeyHome.journeyStartWaypointTrip(intent);
         }
     }

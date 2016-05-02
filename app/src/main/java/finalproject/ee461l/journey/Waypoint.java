@@ -334,13 +334,13 @@ public class Waypoint extends AppCompatActivity {
                     String[] locs = new String[4];
                     String startString = startLatLong.substring(startLatLong.indexOf(" ")+2, startLatLong.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
                     String[] startLoc = startString.split(","); //"xx.xxxx", "-xx.xxxx"
-                    strings[0] = startLoc[0];
-                    strings[1] = startLoc[1];
+                    locs[0] = startLoc[0];
+                    locs[1] = startLoc[1];
 
                     String endString = endLatLong.substring(endLatLong.indexOf(" ")+2, endLatLong.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
                     String[] endLoc = endString.split(","); //"xx.xxxx", "-xx.xxxx"
-                    strings[2] = endLoc[0];
-                    strings[3] = endLoc[1];
+                    locs[2] = endLoc[0];
+                    locs[3] = endLoc[1];
 
                     url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin="
                             + locs[0] + "," + locs[1] + "&destination="

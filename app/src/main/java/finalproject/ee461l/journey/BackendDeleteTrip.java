@@ -78,6 +78,17 @@ public class BackendDeleteTrip extends AsyncTask<String, Void, Void> {
                 String start = trip.getString("startloc");
                 if (!start.equals(startLoc)) {
                     System.out.println("Trip does not match Start Location");
+                    /*
+                    //Use to delete non-matching trips that are alive and lingering around
+                    request = backend.disconnectUserTrip(userEmail, trip.getString("key"));
+                    in = new BufferedInputStream(request.getInputStream());
+                    System.out.println("Disconnect trip " + trip.getString("key") + ": " + backend.readStream(in));
+                    request.disconnect();
+                    request = backend.deleteTrip(trip.getString("key"));
+                    in = new BufferedInputStream(request.getInputStream());
+                    System.out.println("Delete trip " + trip.getString("key") + ": " + backend.readStream(in));
+                    request.disconnect();
+                    */
                     trip = null;
                     continue;
                 }
