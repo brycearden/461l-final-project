@@ -53,11 +53,18 @@ public class DisplayWaypointChoices extends ListActivity{
     }
 
     @Override
+    public void onBackPressed() {
+        setResult(RESULT_CANCELED);
+        super.onBackPressed();
+    }
+
+    @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         String item = (String) getListAdapter().getItem(position);
         Toast.makeText(this, item + " selected", Toast.LENGTH_LONG).show();
         Intent intent = new Intent();
         String waypointID = placesID[position];
+        intent.putExtra("choice", position);
         setResult(RESULT_OK, intent);
         new TripRequest().execute(startLocId, endLocId, waypointID);
     }

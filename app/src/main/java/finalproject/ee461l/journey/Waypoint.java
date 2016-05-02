@@ -133,7 +133,11 @@ public class Waypoint extends AppCompatActivity {
         usingCurrentLoc = false;
     }
 
-
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_CANCELED);
+        super.onBackPressed();
+    }
 
     public void findNearbyPlaces(View view) {
         System.out.println("finding new places");
@@ -218,6 +222,7 @@ public class Waypoint extends AppCompatActivity {
                     }
                     httpData = stringBuffer.toString();
                     bufferedReader.close();
+                    httpURLConnection.disconnect();
 
                     try {
                         places = new JSONObject(httpData);
@@ -233,9 +238,10 @@ public class Waypoint extends AppCompatActivity {
                             jsonArray[numResponses] = places.getJSONArray("results");
                             finished = true;
                         }
-                        //1000000000
-                        for (int i = 0; i <= 1000000000; i += 1) {}
+                        Thread.sleep(1000);
                     } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -307,30 +313,32 @@ public class Waypoint extends AppCompatActivity {
                     displayPlaces.putExtra("EndLocationId", endLocId);
                     JourneyHome.usingHack = true;
                     startActivityForResult(displayPlaces, 15);
-                    finish();
+                    //finish();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
             }
-            finish();
+            //finish();
         }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         System.out.println("onActivityResult");
-        if (requestCode == 1) {
-            // From Start Handler
+        if (requestCode == 15) {
             if (resultCode == RESULT_OK) {
                 //It worked
                 String waypointID = null;
-                int choice = (int) data.getExtras().get("choice");
+                int choice = (int) data.getIntExtra("choice", 0);
                 try {
                     waypointID = (String) nearbyPlaces[choice].get("id");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                new TripRequest().execute(startLocId, endLocId, waypointID);
+                Intent intent = new Intent(data);
+                setResult(RESULT_OK, intent);
+                finish();
+                //new TripRequest().execute(startLocId, endLocId, waypointID);
             } else {
                 //Null directions
                 System.out.println("error in code");
