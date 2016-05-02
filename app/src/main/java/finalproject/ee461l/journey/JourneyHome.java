@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
@@ -78,6 +79,8 @@ public class JourneyHome extends FragmentActivity {
 
     private boolean isTripActive;
     private boolean isLeader;
+
+    private String prevRoute;
 
     //hack for nested activity
     protected static String startLocationId;
@@ -316,6 +319,7 @@ public class JourneyHome extends FragmentActivity {
         waypointIntent.putExtra(END_LOCATION, endLocId);
         waypointIntent.putExtra(START_LATLNG, startLatLong);
         waypointIntent.putExtra(END_LATLNG, endLatLong);
+        waypointIntent.putExtra("JSONDirection", prevRoute);
 
         startActivityForResult(waypointIntent, JourneyHome.ADD_WAYPOINT);
     }
@@ -398,8 +402,9 @@ public class JourneyHome extends FragmentActivity {
                     intent.putExtra("EndLocationId",endLocationId);
                     intent.putExtra("StartLocLatLng",startLatLng);
                     intent.putExtra("EndLocLatLng",endLatLng);
-                    data.putExtra("isCaravanTrip", map.getCaravanTrip());
-                    data.putExtra("numWaypoints", map.numWaypoints+1);
+                    System.out.println(map.getCaravanTrip());
+                    intent.putExtra("isCaravanTrip", map.getCaravanTrip());
+                    intent.putExtra("numWaypoints", map.numWaypoints+1);
                     map.mMap.clear();
                     journeyStartWaypointTrip(intent);
                 }
@@ -415,6 +420,8 @@ public class JourneyHome extends FragmentActivity {
         adjustView();
         map.setIds(data);
         map.setCaravanTrip(data.getBooleanExtra("isCaravanTrip", false));
+
+        prevRoute = data.getStringExtra("JSONDirections");
 
         //Now we will deal with the route directions
         JSONObject directions = null;
@@ -462,6 +469,8 @@ public class JourneyHome extends FragmentActivity {
         map.numWaypoints = data.getIntExtra("numWaypoints", 0);
 
         int numWaypoints = 1;
+
+        prevRoute = data.getStringExtra("JSONDirections");
 
         //Now we will deal with the route directions
         JSONObject directions = null;
