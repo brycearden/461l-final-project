@@ -46,6 +46,7 @@ public class Waypoint extends AppCompatActivity {
     private String endLatLong;
     private String startLatLong;
     private Place waypoint;
+    private String waypointLatLong;
 
     private String prevRoute;
     private boolean useCurrentSpot;
@@ -238,7 +239,7 @@ public class Waypoint extends AppCompatActivity {
                             jsonArray[numResponses] = places.getJSONArray("results");
                             finished = true;
                         }
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
@@ -298,20 +299,25 @@ public class Waypoint extends AppCompatActivity {
                 Intent displayPlaces = new Intent(activity, DisplayWaypointChoices.class);
                 String[] names = new String[nearbyPlaces.length];
                 String[] namesID = new String[nearbyPlaces.length];
+                String[] namesLatLng = new String[nearbyPlaces.length];
                 try {
                     for (int i = 0; i < nearbyPlaces.length; i += 1) {
                         names[i] = nearbyPlaces[i].getString("name");
                         namesID[i] = nearbyPlaces[i].getString("place_id");
+                        Double lat,lng = 0.0;
+                        lat = (Double )((JSONObject)((JSONObject)nearbyPlaces[i].get("geometry")).get("location")).get("lat");
+                        lng = (Double )((JSONObject)((JSONObject)nearbyPlaces[i].get("geometry")).get("location")).get("lng");
+                        namesLatLng[i] = lat + "," + lng;
                     }
                     displayPlaces.putExtra("places", names);
                     displayPlaces.putExtra("placesID", namesID);
+                    displayPlaces.putExtra("placesLatLng", namesLatLng);
                     displayPlaces.putExtra("StartLocLatLng", startLatLong);
                     displayPlaces.putExtra("EndLocLatLng", endLatLong);
 
                     //Also add start/end place ids to intent
                     displayPlaces.putExtra("StartLocationId", startLocId);
                     displayPlaces.putExtra("EndLocationId", endLocId);
-                    JourneyHome.usingHack = true;
                     startActivityForResult(displayPlaces, 15);
                     //finish();
                 } catch (JSONException e) {
@@ -327,18 +333,9 @@ public class Waypoint extends AppCompatActivity {
         System.out.println("onActivityResult");
         if (requestCode == 15) {
             if (resultCode == RESULT_OK) {
-                //It worked
-                String waypointID = null;
-                int choice = (int) data.getIntExtra("choice", 0);
-                try {
-                    waypointID = (String) nearbyPlaces[choice].get("id");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
                 Intent intent = new Intent(data);
                 setResult(RESULT_OK, intent);
                 finish();
-                //new TripRequest().execute(startLocId, endLocId, waypointID);
             } else {
                 //Null directions
                 System.out.println("error in code");
@@ -350,6 +347,7 @@ public class Waypoint extends AppCompatActivity {
         System.out.println("made it");
         if(startLocId == null || endLocId == null || waypoint == null){return;}
         String waypointID = waypoint.getId();
+        waypointLatLong = waypoint.getLatLng().toString();
         new TripRequest().execute(startLocId, endLocId, waypointID);
     }
     private class TripRequest extends AsyncTask<String, Void, String> {
@@ -428,9 +426,16 @@ public class Waypoint extends AppCompatActivity {
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+            intent.putExtra("WaypointLocationId", waypointId);
 
             //Finally add waypoint lat/lng
-            intent.putExtra("WaypointLatLng", waypoint.getLatLng().toString());
+            LatLng wyptLatLng = waypoint.getLatLng();
+            String latLng = wyptLatLng.toString();
+            String latlng[] = latLng.split(",");
+            latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
+            latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
+            latLng = latlng[0] + "," + latlng[1];
+            intent.putExtra("WaypointLocLatLng", latLng);
 
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);

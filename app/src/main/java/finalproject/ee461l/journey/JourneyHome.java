@@ -82,16 +82,6 @@ public class JourneyHome extends FragmentActivity {
 
     private String prevRoute;
 
-    //hack for nested activity
-    protected static String startLocationId;
-    protected static String endLocationId;
-    protected static String startLatLng;
-    protected static String endLatLng;
-    protected static String result;
-    protected static boolean dataReady;
-    protected static boolean dataCorrect;
-    protected static boolean usingHack;
-
     //OnActivityResult Constants
     public static final int START_TRIP = 0;
     public static final int JOIN_TRIP = 1;
@@ -383,30 +373,12 @@ public class JourneyHome extends FragmentActivity {
             }
         }
         else if (requestCode == JourneyHome.ADD_WAYPOINT) {
-            if (!usingHack) {
-                if (resultCode == RESULT_OK) {
-                    System.out.println(data.getStringExtra("JSONDirections"));
-                    map.mMap.clear();
-                    data.putExtra("isCaravanTrip", map.getCaravanTrip());
-                    data.putExtra("numWaypoints", map.numWaypoints+1);
-                    journeyStartWaypointTrip(data);
-                }
-            } else {
-                usingHack = false;
-                while(!dataReady){}
-                dataReady = false;
-                if (dataCorrect) {
-                    Intent intent = new Intent();
-                    intent.putExtra("JSONDirections",result);
-                    intent.putExtra("StartLocationId",startLocationId);
-                    intent.putExtra("EndLocationId",endLocationId);
-                    intent.putExtra("StartLocLatLng",startLatLng);
-                    intent.putExtra("EndLocLatLng",endLatLng);
-                    intent.putExtra("isCaravanTrip", map.getCaravanTrip());
-                    intent.putExtra("numWaypoints", map.numWaypoints+1);
-                    map.mMap.clear();
-                    journeyStartWaypointTrip(intent);
-                }
+            if (resultCode == RESULT_OK) {
+                System.out.println(data.getStringExtra("JSONDirections"));
+                map.mMap.clear();
+                data.putExtra("isCaravanTrip", map.getCaravanTrip());
+                data.putExtra("numWaypoints", map.numWaypoints+1);
+                journeyStartWaypointTrip(data);
             }
         }
         else if (requestCode == GOOGLE_ACCT_SIGNIN) {

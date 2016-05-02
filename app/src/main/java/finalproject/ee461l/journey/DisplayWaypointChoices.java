@@ -37,12 +37,15 @@ public class DisplayWaypointChoices extends ListActivity{
     private String startLocId;
     private String endLocId;
     private String[] placesID;
+    private String[] placesLatLng;
+    private String waypointLatLng;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         String[] places = (String[]) intent.getExtras().get("places");
         placesID = (String[]) intent.getExtras().get("placesID");
+        placesLatLng = (String[]) intent.getExtras().get("placesLatLng");
         startLocId = intent.getExtras().getString("StartLocationId");
         endLocId = intent.getExtras().getString("EndLocationId");
         startLatLong = intent.getExtras().getString("StartLocLatLng");
@@ -64,6 +67,7 @@ public class DisplayWaypointChoices extends ListActivity{
         Toast.makeText(this, item + " selected", Toast.LENGTH_LONG).show();
         Intent intent = new Intent();
         String waypointID = placesID[position];
+        waypointLatLng = placesLatLng[position];
         intent.putExtra("choice", position);
         setResult(RESULT_OK, intent);
         new TripRequest().execute(startLocId, endLocId, waypointID);
@@ -119,20 +123,6 @@ public class DisplayWaypointChoices extends ListActivity{
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            if (directions!=null) {
-                //hack onActivityResult
-                JourneyHome.startLocationId = startId;
-                JourneyHome.endLocationId = endId;
-                JourneyHome.startLatLng = startLatLong;
-                JourneyHome.endLatLng = endLatLong;
-                JourneyHome.result = result;
-                JourneyHome.dataCorrect = true;
-            } else {
-                JourneyHome.dataCorrect = false;
-            }
-            JourneyHome.dataReady = true;
-
-
 
             Intent intent = new Intent();
             intent.putExtra("JSONDirections", result);
@@ -142,6 +132,8 @@ public class DisplayWaypointChoices extends ListActivity{
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
+            intent.putExtra("WaypointLocationId", waypointId);
+            intent.putExtra("WaypointLocLatLng", waypointLatLng);
 
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);
