@@ -245,6 +245,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     public ArrayList<LatLng> convertPolyline(JSONArray steps) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
         System.out.println("Length of steps: " + steps.length());
+        directions.clear();
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
             String instruction = "";
