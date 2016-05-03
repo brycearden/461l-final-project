@@ -2,6 +2,8 @@ package finalproject.ee461l.journey;
 
 import android.os.AsyncTask;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,12 +23,14 @@ public class BackendCheckForUpdate extends AsyncTask<String, Void, String> {
 
     BackendFunctionality backend;
     OnUpdated update;
+    MapSupport support;
     int numWaypoints;
 
-    public BackendCheckForUpdate(OnUpdated update, int numWaypoints) {
+    public BackendCheckForUpdate(OnUpdated update, MapSupport support, int numWaypoints) {
         backend = BackendFunctionality.getInstance();
         this.update = update;
         this.numWaypoints = numWaypoints;
+        this.support = support;
     }
 
     @Override
@@ -109,6 +113,7 @@ public class BackendCheckForUpdate extends AsyncTask<String, Void, String> {
 
                 String lat = way.getString("lat");
                 String lon = way.getString("lon");
+                support.waypointLocationLatLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lon));
                 waypointUrl += (lat + "%2C");
                 waypointUrl += lon;
                 if (i != (waypointIds.length() - 1)) waypointUrl += "%7C"; //All lat/lngs except the last one end w/ this

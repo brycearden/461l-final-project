@@ -183,7 +183,10 @@ public class BackendFunctionality {
         request.setChunkedStreamingMode(0);
         request.connect();
 
-        String waypointString = latlng.substring(latlng.indexOf(" ")+2, latlng.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+        System.out.println("Waypoint String: " + latlng);
+        String waypointString = null;
+        if (latlng.indexOf(")") != -1) waypointString = latlng.substring(latlng.indexOf(" ")+2, latlng.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+        else waypointString = latlng;
         String[] waypoint = waypointString.split(","); //"xx.xxxx", "-xx.xxxx"
 
         JSONObject trip = new JSONObject();

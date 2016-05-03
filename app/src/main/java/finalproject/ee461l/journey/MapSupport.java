@@ -67,7 +67,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     private String endLocationId;
     private LatLng endLocationLatLng;
 
-    private LatLng waypointLocationLatLng;
+    protected LatLng waypointLocationLatLng;
 
     //Caravaning
     private boolean isCaravan;
@@ -185,7 +185,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     public void onLocationChanged(Location location) {
         updateLocation(location);
-        if (isCaravan && !updatingWaypoints) new BackendCheckForUpdate(this, numWaypoints).execute(journeyHome.nav.getUserEmail());
+        if (isCaravan && !updatingWaypoints) new BackendCheckForUpdate(this, this, numWaypoints).execute(journeyHome.nav.getUserEmail());
     }
 
     public void setupMap(FragmentManager manager, MapFragment mapFragment, JourneyHome home) {
@@ -355,10 +355,12 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         //First, let's get the latitude and longitude of the Start and End locations
         String startData = data.getExtras().getString("StartLocLatLng");
         String endData = data.getExtras().getString("EndLocLatLng");
+        /*
         String wyptData = null;
         if (data.hasExtra("WaypointLocLatLng")) {
             wyptData = data.getExtras().getString("WaypointLocLatLng");
         }
+        */
 
         //Start with StartLoc
         if (startData.equals("Current")) startLocationLatLng = currentLocation;
@@ -375,20 +377,24 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
         latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
         endLocationLatLng = new LatLng(Double.parseDouble(latlng[0]), Double.parseDouble(latlng[1]));
 
+        /*
         if (wyptData != null) {
             String latlng2[] = wyptData.split(",");
             waypointLocationLatLng = new LatLng(Double.parseDouble(latlng2[0]), Double.parseDouble(latlng2[1]));
         } else {
             waypointLocationLatLng = null;
         }
+        */
 
         //Add markers for start/end
         if (marker != null) marker.remove();
         mMap.addMarker(new MarkerOptions().position(startLocationLatLng).title("Start Location"));
         mMap.addMarker(new MarkerOptions().position(endLocationLatLng).title("End Location"));
+        /*
         if(waypointLocationLatLng != null) {
             mMap.addMarker(new MarkerOptions().position(waypointLocationLatLng).title("Waypoint"));
         }
+        */
 
         //Now adjust camera zoom
         LatLngBounds.Builder builder = new LatLngBounds.Builder().include(startLocationLatLng).include(endLocationLatLng);
@@ -482,6 +488,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             intent.putExtra("JSONDirections", json);
             intent.putExtra("StartLocLatLng", startLatLng);
             intent.putExtra("EndLocLatLng", endLatLng);
+            intent.putExtra("WaypointLatLng", waypointLocationLatLng.toString());
             intent.putExtra("isCaravanTrip", getCaravanTrip());
             intent.putExtra("numWaypoints", numWaypoints);
             journeyHome.journeyStartWaypointTrip(intent);

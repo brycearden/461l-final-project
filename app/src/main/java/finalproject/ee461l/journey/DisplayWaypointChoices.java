@@ -103,7 +103,24 @@ public class DisplayWaypointChoices extends ListActivity{
             System.out.println(waypointId);
             try {
                 URL url = null;
-                url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startId +
+                if (startId.equals("N/A")) {
+                    String[] locs = new String[4];
+                    String startString = startLatLong.substring(startLatLong.indexOf(" ")+2, startLatLong.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+                    String[] startLoc = startString.split(","); //"xx.xxxx", "-xx.xxxx"
+                    locs[0] = startLoc[0];
+                    locs[1] = startLoc[1];
+
+                    String endString = endLatLong.substring(endLatLong.indexOf(" ")+2, endLatLong.lastIndexOf(")")); //"xx.xxxx,-xx.xxxx"
+                    String[] endLoc = endString.split(","); //"xx.xxxx", "-xx.xxxx"
+                    locs[2] = endLoc[0];
+                    locs[3] = endLoc[1];
+
+                    url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin="
+                            + locs[0] + "," + locs[1] + "&destination="
+                            + locs[2] + "," + locs[3] +
+                            "&waypoints=place_id:" + waypointId + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
+                }
+                else url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=place_id:" + startId +
                         "&destination=place_id:" + endId + "&waypoints=place_id:" + waypointId + "&key=AIzaSyCsGbBFaG5NIf40zDsMgEZw8nh65I5fMw8");
                 System.out.println(url);
                 HttpsURLConnection request = (HttpsURLConnection) url.openConnection();
@@ -134,7 +151,7 @@ public class DisplayWaypointChoices extends ListActivity{
             //Also add start/end place ids to intent
             intent.putExtra("StartLocationId", startId);
             intent.putExtra("EndLocationId", endId);
-            intent.putExtra("WaypointLocLatLng", waypointLatLng);
+            intent.putExtra("WaypointLatLng", waypointLatLng);
 
             intent.putExtra("WaypointID", waypointId);
 

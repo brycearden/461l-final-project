@@ -376,6 +376,7 @@ public class JourneyHome extends FragmentActivity {
         else if (requestCode == JourneyHome.ADD_WAYPOINT) {
             if (resultCode == RESULT_OK) {
                 map.mMap.clear();
+                System.out.println("Journey Home Waypoint: " + data.getStringExtra("WaypointLatLng"));
                 data.putExtra("isCaravanTrip", map.getCaravanTrip());
                 data.putExtra("numWaypoints", map.numWaypoints+1);
                 journeyStartWaypointTrip(data);

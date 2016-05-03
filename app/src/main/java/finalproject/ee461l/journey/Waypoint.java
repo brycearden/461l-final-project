@@ -40,7 +40,7 @@ import javax.net.ssl.HttpsURLConnection;
 /**
  * Created by gordiewhite on 4/18/16.
  */
-public class Waypoint extends AppCompatActivity {
+public class Waypoint extends AppCompatActivity implements OnUpdated {
 
     private String startLocId;
     private String endLocId;
@@ -70,6 +70,9 @@ public class Waypoint extends AppCompatActivity {
     private boolean usingCurrentLoc;
     private String currentLocation;
     private String currentLocPlaceId;
+
+    //Intent to build
+    private Intent displayPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +138,7 @@ public class Waypoint extends AppCompatActivity {
         waypointFragment.setHint("Select Waypoint");
 
         usingCurrentLoc = false;
+        displayPlaces = null;
     }
 
     @Override
@@ -173,6 +177,7 @@ public class Waypoint extends AppCompatActivity {
             new FindPlace(this).execute();
         }
     }
+
     private class FindPlace extends AsyncTask<String, Void, String> {
         String location;
         private ProgressDialog dialog;
@@ -294,7 +299,7 @@ public class Waypoint extends AppCompatActivity {
             }
 
             if (nearbyPlaces != null) {
-                Intent displayPlaces = new Intent(activity, DisplayWaypointChoices.class);
+                displayPlaces = new Intent(activity, DisplayWaypointChoices.class);
                 String[] names = new String[nearbyPlaces.length];
                 String[] namesID = new String[nearbyPlaces.length];
                 String[] namesLatLng = new String[nearbyPlaces.length];
@@ -332,17 +337,27 @@ public class Waypoint extends AppCompatActivity {
         if (requestCode == 15) {
             if (resultCode == RESULT_OK) {
                 String waypointID = data.getStringExtra("WaypointID");
+                displayPlaces.putExtra("JSONDirections", data.getStringExtra("JSONDirections"));
                 //Given the place ID, we need to get the latitude and longitude
-                new PlaceSearch(this, data).execute(waypointID);
+                new PlaceSearch(this, this, data).execute(waypointID);
                 //new TripRequest().execute(startLocId, endLocId, waypointID);
+                /*
                 Intent intent = new Intent(data);
                 setResult(RESULT_OK, intent);
                 finish();
+                */
             } else {
                 //Null directions
                 System.out.println("error in code");
             }
         }
+    }
+
+    @Override
+    public void onUpdated(int numWaypoints, String json) {
+        displayPlaces.putExtra("WaypointLatLng", json);
+        setResult(RESULT_OK, displayPlaces);
+        finish();
     }
 
     public void addWaypoint(View view) {
@@ -437,7 +452,7 @@ public class Waypoint extends AppCompatActivity {
             latlng[0] = latlng[0].substring(latlng[0].indexOf('(')+1); //Latitude
             latlng[1] = latlng[1].substring(0, latlng[1].indexOf(')')); //Longitude
             latLng = latlng[0] + "," + latlng[1];
-            intent.putExtra("WaypointLocLatLng", latLng);
+            intent.putExtra("WaypointLatLng", latLng);
 
             if (directions != null) setResult(RESULT_OK, intent);
             else setResult(RESULT_CANCELED, intent);

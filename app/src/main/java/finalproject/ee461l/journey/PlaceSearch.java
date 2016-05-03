@@ -26,12 +26,14 @@ public class PlaceSearch extends AsyncTask<String, Void, String> {
 
     private ProgressDialog dialog;
     private Waypoint activity;
+    private OnUpdated update;
     private Intent data;
 
-    public PlaceSearch(Waypoint activity, Intent data) {
+    public PlaceSearch(Waypoint activity, OnUpdated update, Intent data) {
         dialog = new ProgressDialog(activity);
         this.activity = activity;
         this.data = data;
+        this.update = update;
     }
 
     @Override
@@ -75,9 +77,12 @@ public class PlaceSearch extends AsyncTask<String, Void, String> {
         if (dialog.isShowing()) dialog.dismiss();
         Intent intent = new Intent(data);
         intent.putExtra("WaypointLatLng", result);
+        update.onUpdated(0, result);
+        /*
         if (result != null) activity.setResult(activity.RESULT_OK, intent);
         else activity.setResult(activity.RESULT_CANCELED, intent);
         activity.finish();
+        */
     }
 
     @Override
