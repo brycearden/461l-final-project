@@ -6,9 +6,15 @@
     android:layout_height="match_parent">
     <!-- The main content view -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/journey_layout"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <FrameLayout
+            android:id="@+id/home_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <!--
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:map="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
@@ -18,8 +24,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".JourneyHome"
-            />
+            /> -->
 
+        <ImageButton
+            android:id="@+id/menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_menu_black_24dp"
+            android:layout_marginLeft="20sp"
+            android:layout_marginTop="20sp"
+            android:onClick="toggleDrawer"/>
         <Button
             android:id="@+id/start_trip"
             android:layout_width="wrap_content"
@@ -35,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/join"
-            android:layout_marginTop="60sp"
+            android:layout_marginTop="70sp"
             android:textSize="10sp"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"

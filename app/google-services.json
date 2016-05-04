@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_id": "vertical-mapper-123021",
+    "project_number": "538969000595",
+    "name": "My Project"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538969000595:android:ff3a1bc9fd4b11c6",
+        "client_id": "android:finalproject.ee461l.journey",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "finalproject.ee461l.journey",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538969000595-gh7i287c9p143fd1ageslnmj58bjg15r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "finalproject.ee461l.journey",
+            "certificate_hash": "3962375743C3F6815CDD7231904D5D4BF9D2C263"
+          }
+        },
+        {
+          "client_id": "538969000595-85rg5ljc1bt4hfjith9kf4kjm2gsc3uf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

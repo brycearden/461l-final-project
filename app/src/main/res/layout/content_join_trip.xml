@@ -12,4 +12,27 @@
     tools:context="finalproject.ee461l.journey.JoinTrip"
     tools:showIn="@layout/activity_join_trip">
 
+    <TextView
+        android:id="@+id/join_trip_instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/join_trip_instruction"
+        android:layout_marginBottom="20sp"/>
+
+    <EditText
+        android:id="@+id/enter_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Email Address"
+        android:layout_below="@+id/join_trip_instruction"/>
+
+    <Button
+        android:id="@+id/join_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Find Trip"
+        android:layout_below="@+id/enter_email"
+        android:layout_marginTop="20sp"
+        android:onClick="searchForUser"/>
+
 </RelativeLayout>

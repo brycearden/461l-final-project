@@ -3,7 +3,7 @@
     package="finalproject.ee461l.journey">
 
     <uses-sdk
-        android:minSdkVersion="16"
+        android:minSdkVersion="18"
         android:targetSdkVersion="23" />
 
     <!--
@@ -20,6 +20,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -57,7 +58,9 @@
 
         <activity
             android:name=".JourneyHome"
-            android:label="@string/title_activity_journey_home">
+            android:label="@string/title_activity_journey_home"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -82,6 +85,30 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="finalproject.ee461l.journey.JourneyHome" />
         </activity>
+        <activity
+            android:name=".Waypoint"
+            android:label="@string/title_activity_add_waypoint"
+            android:parentActivityName=".JourneyHome"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.JourneyHome" />
+        </activity>
+        <activity
+            android:name=".DisplayDirections"
+            android:label="Route Directions"
+            android:parentActivityName=".JourneyHome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.JourneyHome"/>
+        </activity>
+        <activity
+            android:name=".DisplayWaypointChoices"
+            android:label="select waypoint"
+            android:parentActivityName=".Waypoint">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.Waypoint"/>
+        </activity>
     </application>
-
 </manifest>
