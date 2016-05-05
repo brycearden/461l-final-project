@@ -90,3 +90,8 @@ local.properties
 
 #Google services json
 app/google-services.json
+
+#Last part of the .idea folder
+.idea/gradle.xml
+.idea/modules.xml
+.idea/workspace.xml
