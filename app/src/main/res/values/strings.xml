@@ -31,11 +31,10 @@
     <string name="help_nav">
         The Navigation Drawer contains pages that need to be easily accessible from the Home Screen. The Navigation
         Drawer contains the following pages:\n
-        1. Login / Logout - Click this to either login or logout of Journey\n
-        2. Settings - Use this page to change application settings, such as the maximum distance from your route that
-        you would like to stop\n
-        3. Help - This is the page you are currently on. This page contains information about using Journey\n
-        4. About - The About page is a page created by us, the developers, so you can learn a bit more about us and
+        1. Login / Logout - Click this to either login or logout of Journey. <b>Note that you must be logged in to create or
+        join a road trip.</b>\n
+        2. Help - This is the page you are currently on. This page contains information about using Journey\n
+        3. About - The About page is a page created by us, the developers, so you can learn a bit more about us and
         about Journey
     </string>
     <string name="help_start_title"><b>Start Road Trip</b></string>
@@ -43,31 +42,64 @@
         The Start Road Trip page is where you will create the road trip that you would like to navigate. There are three
         important aspects to this page:\n
         1. Starting Destination - Enter the place you would like to start your road trip from\n
-        2. Final Destination - Not the Super Smash Bros. map! Enter the place that you would like to end your road trip
+        2. Final Destination - Not the Super Smash Bros. map! Enter the place that you would like to end your road trip\n
         3. Caravan Trip - If you select this, your trip will become available for others to join. If you do this, once
-        the trip starts you will be deemed the "Trip Admin", while everyone who joined your trip will be "Trip Passengers"
-        (?)\n
+        the trip starts you will be deemed the "Trip Admin", while everyone who joined your trip will be "Trip Passengers"\n
         Once finished, press the Begin Road Trip button to start the road trip!
     </string>
     <string name="help_join_title"><b>Join Road Trip</b></string>
     <string name="help_join">
         The Join Road Trip page is where you will find a road trip, created by our application, to join.\n
-        * Page WIP *
+        To find an active road trip, you will search for the creator of a road trip <b>by email</b>.\n
+        If there are no active trips created by the provided email, you will be asked to try again.\n
+        If an active trip is found, you will join the trip as a passenger!
     </string>
     <string name="help_home_trip_title"><b>Trip Started</b></string>
     <string name="help_home_trip">
         Once you have either created or joined a trip, you will be brought back to the Home Screen (with the map), but
         there are a few different options now:\n
-        1. Your route is displayed on the map as a line. * Additional info about route WIP *\n
-        2. To add a stop to your route (Trip Admin) or request a stop (Trip Passenger), press the Add/Request Stop button\n
-        \t<b>Note:</b> If you are driving, we advise you to use the voice control option so that you may focus on
-        the road\n
-        3. To use voice controls to add/request a route stop, press the microphone button on the right side of the display
-        * Commands WIP *
+        1. Your route is displayed on the map as a line.\n
+        2. There is a marker for the start and the end of your route.\n
+        3. To add a stop to your route, press the Add Waypoint button.\n
+        \t<b>Notes:</b>\n
+                a. If you are driving, we advise you to use the voice control option so that you may focus on
+                the road.\n
+                b. Voice commands will only search for stops around your current location. If you would like to search further down
+                your route, at this time you cannot use the voice commands.\n
+        4. To use voice controls to add/request a route stop, press the microphone button on the right side of the display.
+    </string>
+    <string name="help_voice_commands_title"><b>Voice Commands</b></string>
+    <string name="help_voice_commands">
+        Here is a list of voice commands to help you out. <b>Note that you will be prompted with keywords as well.</b>\n
+        1. Make Stop / Request Stop: Say this when you first press the voice button and the Waypoint addition will begin.\n
+        2. Food / Gas / Sight-seeing / Other: On the next prompt, you will say the type of place you are looking to stop at.\n
+        3. Distance: When prompted to provide a distance, please say how far you are willing to go off your route in one
+        of the following formats:
+            a. _x_ miles
+            b. _x_ kilometers
     </string>
     <string name="help_add_request_stop_title"><b>Add/Request a Stop</b></string>
     <string name="help_add_request_stop">
-        * Page WIP *
+        This page will allow you to add a stop to your route.\n
+        This page is divided into two possible ways of searching for a stop:\n
+        1. Search By Name Or Address: Just as the title says, you can enter the exact place that you would like to go here.
+        Note that this does not tailor results to your route; this is anywhere you want to go!\n
+        2. Search Along Route: This section allows you to search generically along your route.\n
+        The drop down menu allows you to select the type of waypoint to look for.\n
+        The first distance is how big of a search radius you would like around wherever you are searching.\n
+        The final distance to enter is <b>optional</b>. If you would like to search along your route instead of your current
+        location, you can specify how far along your route you would like to search.\n
+        Once entered, you will be able to select from a list of possible choices and, once selected, it will be added to your route.
+    </string>
+
+    <!-- About -->
+    <string name="about_title"><b><u>About</u></b></string>
+    <string name="about">
+        This application was created for EE 461L at the University of Texas at Austin.\n
+        - The Android application was designed and written by Kevin Rosen and Gordie White.\n
+        - The Backend aspect of the application, where data for trips that are being caravaned, was designed and written by
+        Bryce Arden and Ryan Meek.\n
+        Thank you for using Journey. We all hope that the app is as great and useful to you as it is to us.
     </string>
 
     <!-- Join Trip -->
@@ -86,4 +118,8 @@
         <item>hospital</item>
         <item>restaraunt</item>
     </string-array>
+    <string name="title_activity_directions">Directions</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

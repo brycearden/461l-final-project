@@ -72,6 +72,7 @@ public class JourneyHome extends FragmentActivity {
 
 
     private HelpFragment helpFragment;
+    private AboutFragment aboutFragment;
 
     protected VoiceSupport voice;
     protected MapSupport map;
@@ -127,6 +128,7 @@ public class JourneyHome extends FragmentActivity {
         //Initialize fragments
         //mapFragment = MapFragment.newInstance();
         helpFragment = HelpFragment.getInstance();
+        aboutFragment = AboutFragment.getInstance();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         // Note: Doing it this way may be slower?
         FragmentManager manager = getFragmentManager();
@@ -297,6 +299,17 @@ public class JourneyHome extends FragmentActivity {
     }
 
     public void stopHandler(View view) {
+        //We want to make sure that it is okay to add a waypoint
+        if (map.numWaypoints >= 1) {
+            Toast.makeText(this, "Currently Journey only supports 1 waypoint per trip. Apologies for any " +
+                    "inconveniences this may cause.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        else if (!isLeader) {
+            Toast.makeText(this, "Currently Journey only allows the trip leader to add waypoints to a trip. " +
+                    "Apologies for any inconveniences this may cause.", Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent waypointIntent = new Intent(this, Waypoint.class);
         //If we decide to pass values from this screen, we do that here
         waypointIntent.putExtra(CURRENT_LOCATION, map.currentLocation.toString());
@@ -617,10 +630,6 @@ public class JourneyHome extends FragmentActivity {
                     }
                     break;
                 case 1:
-                    //Settings
-                    System.out.println("Settings selected");
-                    break;
-                case 2:
                     //Help
                     //First we need to remove whatever buttons are on the screen
                     Button button = (Button) JourneyHome.this.findViewById(R.id.start_trip);
@@ -643,8 +652,26 @@ public class JourneyHome extends FragmentActivity {
                     manager.beginTransaction().addToBackStack("home").replace(R.id.home_view, helpFragment).commit();
                     System.out.println("Help selected");
                     break;
-                case 3:
+                case 2:
                     //About
+                    Button startButton = (Button) JourneyHome.this.findViewById(R.id.start_trip);
+                    startButton.setVisibility(View.GONE);
+                    ImageButton menuButton = (ImageButton) JourneyHome.this.findViewById(R.id.menu);
+                    menuButton.setVisibility(View.GONE);
+                    if (JourneyHome.this.findViewById(R.id.join_trip) != null) {
+                        //Trip not started yet
+                        button = (Button) JourneyHome.this.findViewById(R.id.join_trip);
+                        button.setVisibility(View.GONE);
+                    }
+                    else {
+                        //Trip started
+                        ImageButton ibutton = (ImageButton) JourneyHome.this.findViewById(R.id.speech_button);
+                        ibutton.setVisibility(View.GONE);
+                        RelativeLayout dirs = (RelativeLayout) JourneyHome.this.findViewById(R.id.directions_button);
+                        dirs.setVisibility(View.GONE);
+                    }
+                    FragmentManager fragMan = getFragmentManager();
+                    fragMan.beginTransaction().addToBackStack("home").replace(R.id.home_view, aboutFragment).commit();
                     System.out.println("About selected");
                     break;
             }

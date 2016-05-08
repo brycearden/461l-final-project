@@ -9,7 +9,7 @@
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality. 
+         location permissions for the 'MyLocation' functionality.
     -->
     <permission
         android:name="finalproject.ee461l.journey.permission.MAPS_RECEIVE"
@@ -42,7 +42,7 @@
              Note that the API key is linked to the encryption key used to sign the APK.
              You need a different API key for each encryption key, including the release key that is used to
              sign the APK for publishing.
-             You can define the keys for the debug and release targets in src/debug/ and src/release/. 
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
         <!--
         <meta-data
@@ -58,9 +58,9 @@
 
         <activity
             android:name=".JourneyHome"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_journey_home"
-            android:screenOrientation="portrait"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -95,20 +95,22 @@
                 android:value="finalproject.ee461l.journey.JourneyHome" />
         </activity>
         <activity
-            android:name=".DisplayDirections"
-            android:label="Route Directions"
-            android:parentActivityName=".JourneyHome">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="finalproject.ee461l.journey.JourneyHome"/>
-        </activity>
-        <activity
             android:name=".DisplayWaypointChoices"
             android:label="select waypoint"
             android:parentActivityName=".Waypoint">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="finalproject.ee461l.journey.Waypoint"/>
+                android:value="finalproject.ee461l.journey.Waypoint" />
+        </activity>
+        <activity
+            android:name=".Directions"
+            android:label="@string/title_activity_directions"
+            android:parentActivityName=".JourneyHome"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="finalproject.ee461l.journey.JourneyHome" />
         </activity>
     </application>
+
 </manifest>

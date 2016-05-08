@@ -447,7 +447,7 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
 
     private void viewDirections(View view) {
         //Will open a new activity that will show the user directions
-        Intent intent = new Intent(journeyHome, DisplayDirections.class);
+        Intent intent = new Intent(journeyHome, Directions.class);
         intent.putStringArrayListExtra(DIRECTIONS_ARRAY, directions);
         journeyHome.startActivity(intent);
     }

@@ -36,7 +36,6 @@ public class NavDrawerSupport {
         ArrayList<String> navItems = new ArrayList<String>();
         if (login) navItems.add("Log In");
         else navItems.add("Log Out");
-        navItems.add("Settings");
         navItems.add("Help");
         navItems.add("About");
         return navItems;
