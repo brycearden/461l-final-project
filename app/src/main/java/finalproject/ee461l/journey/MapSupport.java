@@ -221,12 +221,10 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
             //At least 1 waypoint to worry about
             try {
                 JSONArray routes = directions.getJSONArray("routes");
-                System.out.println("Routes: " + routes + ", numroutes: " + routes.length());
 
                 //Need to get the legs[]
                 JSONObject firstRoute = routes.optJSONObject(0); //If we look for more than 1 route, we'll need a loop
                 JSONArray legs = firstRoute.getJSONArray("legs");
-                System.out.println("Legs: " + legs + ", numlegs" + legs.length());
 
                 //Need to get the steps[] now
                 JSONObject leg = legs.optJSONObject(numLegs); //Once we add waypoints there will be more legs
@@ -247,7 +245,6 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     //      this GitHub repository: https://github.com/googlemaps/android-maps-utils, in the decode() function
     public ArrayList<LatLng> convertPolyline(JSONArray steps, boolean firstTime) {
         ArrayList<LatLng> leg = new ArrayList<LatLng>();
-        System.out.println("Length of steps: " + steps.length());
         if (firstTime) directions.clear();
         for (int i = 0; i < steps.length(); i++) {
             String points = "";
@@ -453,19 +450,15 @@ public class MapSupport implements com.google.android.gms.location.LocationListe
     }
 
     public void postTripToBackend(String userEmail) {
-        System.out.println("Backend called");
         if (startLatLng.equals("Current")) startLatLng = startLocationLatLng.toString(); //Only needs to happen here
         new BackendCreateTrip(journeyHome).execute(userEmail, startLatLng, endLatLng);
     }
 
     public void postWaypointToBackend(String userEmail, String waypointLatLng) {
-        System.out.println("Backend Waypoint addition called");
         new BackendAddWaypoint().execute(userEmail, waypointLatLng);
     }
 
     public void deleteTripFromBackend(String userEmail, boolean deleteTrip) {
-        System.out.println("Deleting trip from backend (only if the user is the leader");
-        System.out.println("Delete trip: " + deleteTrip);
         if (!deleteTrip) journeyHome.finish();
         else new BackendDeleteTrip(this, journeyHome).execute(userEmail, startLatLng, endLatLng);
     }

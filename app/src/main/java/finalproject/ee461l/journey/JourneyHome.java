@@ -389,7 +389,6 @@ public class JourneyHome extends FragmentActivity {
         else if (requestCode == JourneyHome.ADD_WAYPOINT) {
             if (resultCode == RESULT_OK) {
                 map.mMap.clear();
-                System.out.println("Journey Home Waypoint: " + data.getStringExtra("WaypointLatLng"));
                 data.putExtra("isCaravanTrip", map.getCaravanTrip());
                 data.putExtra("numWaypoints", map.numWaypoints+1);
                 journeyStartWaypointTrip(data);
@@ -400,7 +399,6 @@ public class JourneyHome extends FragmentActivity {
         }
         else if (requestCode == JourneyHome.VOICE_ADD_WAYPOINT) {
             if (resultCode == RESULT_OK) {
-                System.out.println(data.getStringExtra("JSONDirections"));
                 map.mMap.clear();
                 data.putExtra("isCaravanTrip", map.getCaravanTrip());
                 data.putExtra("numWaypoints", map.numWaypoints+1);
@@ -470,7 +468,6 @@ public class JourneyHome extends FragmentActivity {
         JSONObject directions = null;
         try {
             directions = new JSONObject(data.getStringExtra("JSONDirections"));
-            System.out.println(directions);
         } catch (JSONException e) {
             e.printStackTrace();
         }
